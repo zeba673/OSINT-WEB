@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ t('nav_accounts') }}{% endblock %}
+{% block content %}
+
+<div class="page-head">
+<div>
+<h1>{{ t('accounts_title') }}</h1>
+<p>{{ t('accounts_subtitle') }}</p>
+</div>
+</div>
+
+<div class="alert warn">{{ t('security_notice') }}</div>
+
+<form action="/accounts/save" method="post">
+<div class="g2">
+{% for platform, schema in schemas.items() %}
+<div class="acard">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+<div class="plat">{{ platform|capitalize }}</div>
+<label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+<input type="checkbox" name="enable_{{ platform }}" {% if accounts.get(platform,{}).get('enabled') %}checked{% endif %} style="accent-color:var(--accent);">
+<span style="font-size:10px;color:var(--text-dim);">{{ t('enabled') }}</span>
+</label>
+</div>
+<div class="desc">{{ schema.description }}</div>
+{% for field in schema.fields %}
+<div class="fgroup" style="margin-bottom:8px;">
+<label style="font-size:10px;text-transform:none;letter-spacing:0;">{{ field.label }}</label>
+<input class="fcontrol" type="{% if field.type == 'password' %}password{% else %}text{% endif %}"
+name="account_{{ platform }}_{{ field.key }}"
+placeholder="{{ field.label }}"
+{% if field.required %}required{% endif %}
+value="{{ accounts.get(platform,{}).get(field.key,'') }}"
+style="font-size:12px;padding:5px 8px;">
+</div>
+{% endfor %}
+{% if platform == 'instagram' %}
+<div class="tip">Use a dedicated OSINT account. Login via Instaloader.</div>
+{% elif platform == 'twitter' %}
+<div class="tip">Generate at developer.twitter.com → Bearer Token</div>
+{% elif platform == 'facebook' %}
+<div class="tip">Cookies: DevTools → Application → facebook.com</div>
+{% elif platform == 'linkedin' %}
+<div class="tip">li_at cookie: DevTools → Application → linkedin.com</div>
+{% elif platform == 'telegram' %}
+<div class="tip">API keys at <a href="https://my.telegram.org/apps" target="_blank">my.telegram.org/apps</a></div>
+{% elif platform == 'discord' %}
+<div class="tip">Token: DevTools → Application → Local Storage → token</div>
+{% elif platform == 'github' %}
+<div class="tip">Generate at github.com/settings/tokens</div>
+{% endif %}
+</div>
+{% endfor %}
+</div>
+
+<div class="btn-group mt-2">
+<button type="submit" class="btn prime">{{ t('save_config') }}</button>
+<a href="/" class="btn">{{ t('cancel') }}</a>
+</div>
+</form>
+
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ t('nav_history') }}{% endblock %}
+{% block content %}
+
+<div class="page-head">
+<div>
+<h1>{{ t('history_title') }}</h1>
+<p>{{ t('history_subtitle') }}</p>
+</div>
+</div>
+
+<div class="panel">
+<div class="panel-head">
+<h3>{{ t('case_log') }}</h3>
+<span class="badge">{{ searches|length }} {{ t('records') }}</span>
+</div>
+<div class="panel-body plain">
+{% if searches %}
+<table class="dense">
+<thead>
+<tr><th>{{ t('id') }}</th><th>{{ t('type') }}</th><th>{{ t('target') }}</th><th>{{ t('status') }}</th><th>{{ t('date') }}</th><th>{{ t('actions') }}</th></tr>
+</thead>
+<tbody>
+{% for s in searches %}
+<tr>
+<td class="mono" style="color:var(--text-muted)">#{{ s.id }}</td>
+<td><span class="badge">{{ s.query_type }}</span></td>
+<td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.query_value[:70] }}</td>
+<td>
+{% if s.status == 'completed' %}<span class="badge green">&#9679; {{ t('completed') }}</span>
+{% elif s.status == 'running' %}<span class="badge amber">&#9679; {{ t('running') }}</span>
+{% elif s.status == 'error' %}<span class="badge red">&#9679; {{ t('error') }}</span>
+{% else %}<span class="badge">{{ s.status }}</span>{% endif %}
+</td>
+<td style="color:var(--text-dim);font-size:11px;">{{ s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else '-' }}</td>
+<td><div class="btn-group" style="gap:3px;">
+<a href="/results/{{ s.id }}" class="btn btn-sm">{{ t('view') }}</a>
+{% if s.report_path %}<a href="/view-report/{{ s.id }}" class="btn btn-sm" target="_blank">{{ t('report') }}</a>{% endif %}
+</div></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<div class="empty" style="padding:40px;">
+<div class="ico">&#9776;</div>
+<h3>{{ t('no_records') }}</h3>
+<p>{{ t('no_records_desc') }}</p>
+</div>
+{% endif %}
+</div>
+</div>
+
+{% endblock %}

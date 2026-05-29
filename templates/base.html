@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" data-theme="{{ theme }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OSINT Web — {% block title %}{{ t('nav_dashboard') }}{% endblock %}</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+<div class="sidebar-head">
+<div class="mark">OW</div>
+<div>
+<div class="title">OSINT Web</div>
+<div class="sub">v2.0 // {{ 'INTEL' if lang == 'en' else 'INTELIGENCIA' }}</div>
+</div>
+</div>
+
+<nav class="sidebar-nav">
+<div class="nav-group">
+<div class="nav-label">{{ t('nav_main') }}</div>
+<a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">
+<span class="ico">&#9679;</span> {{ t('nav_dashboard') }}
+</a>
+<a href="/deep-search" class="nav-item {% if request.url.path == '/deep-search' %}active{% endif %}">
+<span class="ico">&#8862;</span> {{ t('nav_deep_search') }}
+</a>
+<a href="/search" class="nav-item {% if '/search' in request.url.path and '/deep' not in request.url.path %}active{% endif %}">
+<span class="ico">&#8999;</span> {{ t('nav_simple_search') }}
+</a>
+<a href="/history" class="nav-item {% if request.url.path == '/history' %}active{% endif %}">
+<span class="ico">&#9776;</span> {{ t('nav_history') }}
+</a>
+</div>
+
+<div class="nav-group">
+<div class="nav-label">{{ t('nav_config') }}</div>
+<a href="/accounts" class="nav-item {% if request.url.path == '/accounts' %}active{% endif %}">
+<span class="ico">&#9881;</span> {{ t('nav_accounts') }}
+</a>
+</div>
+</nav>
+
+<div class="sidebar-foot">
+<span class="dot"></span>
+<span>{{ t('system_status') }}</span>
+</div>
+</aside>
+
+<div class="main">
+<header class="topbar">
+<div class="topbar-search">
+<span class="ico">&#8999;</span>
+<input type="text" id="qsearch" placeholder="{{ t('search_placeholder') }}"
+onkeydown="if(event.key==='Enter'&&this.value.trim())window.location='/search/run?query_type=username&query_value='+encodeURIComponent(this.value.trim())">
+</div>
+
+<div class="topbar-actions">
+<button class="topbar-btn" onclick="window.location='/deep-search'" title="{{ t('new_investigation') }}">+</button>
+<button class="topbar-btn theme-btn" id="themeToggle" title="{{ t('dark_mode') if theme == 'dark' else t('light_mode') }}">&#9681;</button>
+<div class="dropdown">
+<button class="topbar-btn lang-btn" id="langToggle">{{ lang|upper }}</button>
+<div class="dropdown-menu" id="langMenu">
+<button class="dropdown-item" onclick="setLang('en')">EN &nbsp;English</button>
+<button class="dropdown-item" onclick="setLang('es')">ES &nbsp;Español</button>
+</div>
+</div>
+</div>
+</header>
+
+<main class="content">
+{% block content %}{% endblock %}
+</main>
+</div>
+
+</div>
+
+<script>
+(function(){
+    var t = localStorage.getItem('theme') || 'dark';
+    if(t === 'light') document.documentElement.setAttribute('data-theme','light');
+
+    var l = localStorage.getItem('lang') || '{{ lang }}';
+    document.documentElement.lang = l;
+})();
+
+document.getElementById('themeToggle').addEventListener('click', function(){
+    var html = document.documentElement;
+    var cur = html.getAttribute('data-theme') || 'dark';
+    var next = cur === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    this.title = next === 'dark' ? '{{ t("dark_mode") }}' : '{{ t("light_mode") }}';
+});
+
+function setLang(lang){
+    document.cookie = 'lang='+lang+';path=/;max-age=31536000';
+    localStorage.setItem('lang', lang);
+    location.reload();
+}
+
+document.addEventListener('click', function(e){
+    var m = document.getElementById('langMenu');
+    if(m && !e.target.closest('.dropdown')) m.classList.remove('open');
+});
+document.getElementById('langToggle').addEventListener('click', function(e){
+    e.stopPropagation();
+    document.getElementById('langMenu').classList.toggle('open');
+});
+
+document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(e){
+        e.preventDefault();
+        var target = this.getAttribute('data-tab');
+        document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
+        document.querySelectorAll('.tab-content').forEach(function(x){x.classList.remove('active');});
+        this.classList.add('active');
+        if(target) document.getElementById(target)?.classList.add('active');
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<div class="panel">
+<div class="panel-head"><h3>&#128247; {{ t('photo_search_results') }}</h3></div>
+<div class="panel-body">
+<div class="stats" style="grid-template-columns:repeat(3,1fr);">
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('total_candidates') }}</div><div class="val" style="font-size:18px;">{{ s.total_candidates }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('verified_profiles') }}</div><div class="val" style="font-size:18px;color:var(--green);">{{ s.total_verified }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('engines_used') }}</div><div class="val" style="font-size:14px;">{{ s.engines_used|join(', ') if s.engines_used else 'N/A' }}</div></div>
+</div>
+
+{% if s.thumbnail and not s.thumbnail.startswith('data:') %}
+<div style="margin:12px 0;text-align:center;">
+<img src="{{ s.thumbnail }}" alt="Search photo" style="max-width:180px;max-height:180px;border-radius:8px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.15);">
+</div>
+{% endif %}
+
+{% if s.found_profiles %}
+<table class="dense">
+<thead><tr><th>{{ t('platform') }}</th><th>{{ t('username') }}</th><th>URL</th><th>{{ t('status') }}</th></tr></thead>
+<tbody>
+{% for p in s.found_profiles %}
+<tr>
+<td style="font-weight:500;">{{ p.platform }}</td>
+<td>{{ p.username }}</td>
+<td><a href="{{ p.url }}" target="_blank">{{ p.url[:50] }}&#8230;</a></td>
+<td>
+{% if p.status == 'found' %}
+<span class="badge green">{{ t('found') }}</span>
+{% elif p.status == 'unverified' %}
+<span class="badge amber">{{ t('unverified') }}</span>
+{% else %}
+<span class="badge">{{ p.status }}</span>
+{% endif %}
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<div class="alert warn" style="margin-top:12px;">{{ t('no_profiles_found_photo') }}</div>
+{% endif %}
+</div>
+</div>

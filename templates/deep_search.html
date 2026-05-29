@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}{{ t('nav_deep_search') }}{% endblock %}
+{% block content %}
+
+<div class="page-head">
+<div>
+<h1>{{ t('deep_title') }}</h1>
+<p>{{ t('deep_subtitle') }}</p>
+</div>
+</div>
+
+<div class="alert info">{{ t('deep_brief') }}</div>
+
+<div class="panel">
+<div class="panel-head">
+<h3>{{ t('target_profile') }}</h3>
+<span class="badge">{{ t('multi_input') }}</span>
+</div>
+<div class="panel-body">
+<form action="/deep-search/run" method="post" enctype="multipart/form-data">
+<div class="g2">
+<div class="fgroup">
+<label>{{ t('username') }}</label>
+<input class="fcontrol" type="text" name="username" placeholder="target_username">
+<div class="fhelp">{{ t('username_help') }}</div>
+</div>
+<div class="fgroup">
+<label>{{ t('email') }}</label>
+<input class="fcontrol" type="email" name="email" placeholder="person@email.com">
+<div class="fhelp">{{ t('email_help') }}</div>
+</div>
+<div class="fgroup">
+<label>{{ t('full_name') }}</label>
+<input class="fcontrol" type="text" name="full_name" placeholder="John Alexander Doe">
+<div class="fhelp">{{ t('full_name_help') }}</div>
+</div>
+<div class="fgroup">
+<label>{{ t('phone') }}</label>
+<input class="fcontrol" type="text" name="phone" placeholder="+1234567890">
+<div class="fhelp">{{ t('phone_help') }}</div>
+</div>
+</div>
+<div class="fgroup">
+<label>{{ t('urls') }}</label>
+<textarea class="fcontrol" name="urls" placeholder="https://facebook.com/username&#10;https://github.com/username" rows="3"></textarea>
+<div class="fhelp">{{ t('urls_help') }}</div>
+</div>
+<div class="fgroup">
+<label>{{ t('photo') }}</label>
+<div class="upload-zone" id="uploadZone">
+<div class="upload-placeholder" id="uploadPlaceholder">
+<div class="upload-icon">&#128247;</div>
+<div class="upload-text">{{ t('photo_help') }}</div>
+<div class="upload-hint">{{ t('photo_hint') }}</div>
+</div>
+<div class="upload-preview" id="uploadPreview" style="display:none;">
+<img id="previewImg" src="" alt="Preview">
+<button type="button" class="btn small" id="removePhoto" style="margin-top:6px;">{{ t('remove_photo') }}</button>
+</div>
+<input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none;">
+</div>
+<div class="fhelp">{{ t('photo_result_note') }}</div>
+</div>
+<div class="btn-group mt-2">
+<button type="submit" class="btn prime lg">{{ t('execute') }}</button>
+<a href="/search" class="btn lg">{{ t('simple_search') }}</a>
+</div>
+</form>
+</div>
+</div>
+
+<div class="panel mt-2">
+<div class="panel-head"><h3>{{ t('execution_plan') }}</h3></div>
+<div class="panel-body">
+<div class="sgrid">
+<div class="scard"><div class="ico">&#128270;</div><div class="name">{{ t('plan_username') }}</div><div class="desc">{{ t('plan_username_desc') }}</div></div>
+<div class="scard"><div class="ico">&#9993;</div><div class="name">{{ t('plan_email') }}</div><div class="desc">{{ t('plan_email_desc') }}</div></div>
+<div class="scard"><div class="ico">&#128100;</div><div class="name">{{ t('plan_identity') }}</div><div class="desc">{{ t('plan_identity_desc') }}</div></div>
+<div class="scard"><div class="ico">&#128241;</div><div class="name">{{ t('plan_phone') }}</div><div class="desc">{{ t('plan_phone_desc') }}</div></div>
+<div class="scard"><div class="ico">&#128279;</div><div class="name">{{ t('plan_url') }}</div><div class="desc">{{ t('plan_url_desc') }}</div></div>
+<div class="scard"><div class="ico">&#128247;</div><div class="name">{{ t('plan_photo') }}</div><div class="desc">{{ t('plan_photo_desc') }}</div></div>
+<div class="scard"><div class="ico">&#129302;</div><div class="name">{{ t('plan_ai') }}</div><div class="desc">{{ t('plan_ai_desc') }}</div></div>
+</div>
+</div>
+</div>
+
+<style>
+.upload-zone {
+border: 2px dashed var(--border);
+border-radius: 8px;
+padding: 24px;
+text-align: center;
+cursor: pointer;
+transition: border-color .2s, background .2s;
+background: var(--bg-primary);
+}
+.upload-zone:hover, .upload-zone.dragover {
+border-color: var(--blue);
+background: var(--bg-hover);
+}
+.upload-icon { font-size: 36px; line-height: 1; margin-bottom: 8px; }
+.upload-text { font-size: 14px; color: var(--text-bright); margin-bottom: 4px; }
+.upload-hint { font-size: 11px; color: var(--text-dim); }
+.upload-preview img { max-width: 200px; max-height: 200px; border-radius: 6px; border: 1px solid var(--border); }
+</style>
+
+<script>
+(function() {
+var zone = document.getElementById('uploadZone');
+var input = document.getElementById('photoInput');
+var placeholder = document.getElementById('uploadPlaceholder');
+var preview = document.getElementById('uploadPreview');
+var previewImg = document.getElementById('previewImg');
+
+zone.addEventListener('click', function() { input.click(); });
+zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', function() { zone.classList.remove('dragover'); });
+zone.addEventListener('drop', function(e) {
+e.preventDefault(); zone.classList.remove('dragover');
+if (e.dataTransfer.files.length) {
+input.files = e.dataTransfer.files; showPreview(e.dataTransfer.files[0]);
+}
+});
+input.addEventListener('change', function() {
+if (input.files.length) showPreview(input.files[0]);
+});
+document.getElementById('removePhoto').addEventListener('click', function() {
+input.value = ''; placeholder.style.display = ''; preview.style.display = 'none';
+});
+
+function showPreview(file) {
+if (!file.type.startsWith('image/')) return;
+var reader = new FileReader();
+reader.onload = function(e) { previewImg.src = e.target.result; placeholder.style.display = 'none'; preview.style.display = ''; };
+reader.readAsDataURL(file);
+}
+})();
+</script>
+
+{% endblock %}

@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.env
+data/*.db
+uploads/*
+reports/*
+social_accounts.json
+*.log
+.DS_Store

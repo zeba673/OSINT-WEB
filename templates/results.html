@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+{% block title %}{{ t('results_for') }} #{{ search.id }}{% endblock %}
+{% block content %}
+
+<div class="page-head">
+<div>
+<h1>{{ t('results_for') }}</h1>
+<p>{{ t('target') }}: <strong style="color:var(--text-bright)">{{ search.query_value[:80] }}</strong>
+<span class="badge">{{ search.query_type }}</span>
+<span class="badge" style="font-family:var(--font);font-size:10px;">ID: #{{ search.id }}</span></p>
+</div>
+<div>
+{% if search.status == 'completed' %}<span class="badge green">&#9679; {{ t('completed') }}</span>
+{% elif search.status == 'running' %}<span class="badge amber">&#9679; {{ t('running') }}</span>
+{% elif search.status == 'error' %}<span class="badge red">&#9679; {{ t('error') }}</span>{% endif %}
+</div>
+</div>
+
+{% if search.status == 'running' %}
+<div class="panel">
+<div class="panel-body" style="text-align:center;padding:32px;">
+<div style="font-size:18px;margin-bottom:8px;">&#8635;</div>
+<div style="font-size:12px;font-weight:500;color:var(--text-bright);margin-bottom:6px;">{{ t('in_progress') }}</div>
+<div class="pbar" style="max-width:320px;margin:0 auto 8px;"><div class="fill"></div></div>
+<div style="font-size:10px;color:var(--text-dim);">{{ t('collecting_intel') }}</div>
+</div>
+</div>
+{% endif %}
+
+{% if search.error %}
+<div class="alert danger">{{ search.error }}</div>
+{% endif %}
+
+{% if search.results %}
+{% set r = search.results %}
+
+{% if search.query_type == 'deep' %}
+{% set keys = r.keys() | list %}
+
+<div class="stats">
+<div class="stat"><div class="lbl">{{ t('data_sources') }}</div><div class="val">{{ keys | length }}</div></div>
+<div class="stat">
+<div class="lbl">{{ t('profiles_found') }}</div>
+{% set tp = namespace(n=0) %}
+{% for k in keys %}{% if k.startswith('username_') %}{% set tp.n = tp.n + r[k].get('total_found', 0) %}{% endif %}{% endfor %}
+<div class="val">{{ tp.n }}</div>
+</div>
+<div class="stat">
+<div class="lbl">Unverified</div>
+{% set uv = namespace(n=0) %}
+{% for k in keys %}{% if k.startswith('username_') %}{% set uv.n = uv.n + r[k].get('total_unverified', 0) %}{% endif %}{% endfor %}
+<div class="val" style="color:var(--amber)">{{ uv.n }}</div>
+</div>
+<div class="stat">
+<div class="lbl">{{ t('breaches_detected') }}</div>
+{% set bc = namespace(n=0) %}
+{% for k in keys %}{% if k.startswith('email_') and r[k].get('hibp') %}{% set bc.n = bc.n + r[k]['hibp'].get('total_breaches', 0) %}{% endif %}{% endfor %}
+<div class="val">{{ bc.n }}</div>
+</div>
+<div class="stat">
+<div class="lbl">{{ t('ai_status') }}</div>
+<div class="val" style="color:var(--green)">{{ t('analyzed') if search.ai_analysis else t('pending') }}</div>
+</div>
+</div>
+
+<div class="tabs">
+{% for key in keys %}
+{% set sid = key|replace('.','_')|replace('@','_') %}
+<a class="tab {% if loop.first %}active{% endif %}" data-tab="t{{ sid }}" href="#">
+{% if key.startswith('username_') %}&#128270;{% elif key.startswith('instagram_') %}&#128248;{% elif key.startswith('twitter_') %}&#128038;{% elif key.startswith('facebook_') %}&#128100;{% elif key.startswith('linkedin_') %}&#128188;{% elif key.startswith('email_') %}&#9993;{% elif key.startswith('holehe_') %}&#128273;{% elif key.startswith('name_') %}&#128100;{% elif key.startswith('phone_') %}&#128241;{% elif key.startswith('dorks_') %}&#128269;{% elif key.startswith('url_') %}&#128279;{% elif key.startswith('breaches_') %}&#9888;{% elif key.startswith('deepweb_') %}&#127760;{% elif key == 'image_social' %}&#128247;{% else %}&#128203;{% endif %}
+{{ key.split('_')[0]|capitalize }}
+</a>
+{% endfor %}
+</div>
+
+{% for key in keys %}
+{% set sid = key|replace('.','_')|replace('@','_') %}
+{% set s = r[key] %}
+<div class="tab-content {% if loop.first %}active{% endif %}" id="t{{ sid }}">
+
+{% if key.startswith('username_') %}
+<div class="panel">
+<div class="panel-head"><h3>&#128270; {{ t('username') }}: {{ key.split('_',1)[1] }}</h3></div>
+<div class="panel-body">
+<div class="stats" style="grid-template-columns:repeat(3,1fr);">
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('platform') }}</div><div class="val" style="font-size:18px;">{{ s.profiles|length }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('profiles_found') }}</div><div class="val" style="font-size:18px;color:var(--green)">{{ s.total_found }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Unverified</div><div class="val" style="font-size:18px;color:var(--amber)">{{ s.total_unverified }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Hit Rate</div><div class="val" style="font-size:18px;">{{ "%.0f"|format(s.total_found/s.profiles|length*100 if s.profiles else 0) }}%</div></div>
+</div>
+{% if s.profiles %}
+<table class="dense">
+<thead><tr><th>{{ t('platform') }}</th><th>URL</th><th>{{ t('status') }}</th></tr></thead>
+<tbody>
+{% for p in s.profiles if p.status == 'found' %}
+<tr><td style="font-weight:500;">{{ p.platform }}</td><td><a href="{{ p.url }}" target="_blank">{{ p.url[:55] }}&#8230;</a></td><td><span class="badge green">{{ t('found') }}</span></td></tr>
+{% endfor %}
+{% for p in s.profiles if p.status == 'unverified' %}
+<tr><td style="font-weight:500;color:var(--amber);">{{ p.platform }}</td><td><a href="{{ p.url }}" target="_blank" style="color:var(--amber);">{{ p.url[:55] }}&#8230;</a></td><td><span class="badge amber">Unverified</span></td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% if s.profiles|selectattr("status","in",["not_found","blocked","redirect_login","redirect_away","rate_limited","error","timeout"])|list %}
+<details style="margin-top:8px;">
+<summary style="cursor:pointer;font-size:12px;color:var(--text-dim);">&#9660; Show not found ({{ s.profiles|selectattr("status","in",["not_found","blocked","redirect_login","redirect_away","rate_limited","error","timeout"])|list|length }})</summary>
+<table class="dense">
+<tbody>
+{% for p in s.profiles if p.status in ('not_found','blocked','redirect_login','redirect_away','rate_limited','error','timeout') %}
+<tr><td style="color:var(--text-dim);font-size:11px;">{{ p.platform }}</td><td style="color:var(--text-dim);font-size:11px;">{{ p.url[:45] }}&#8230;</td><td><span class="badge" style="background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border);">{{ p.status }}</span></td></tr>
+{% endfor %}
+</tbody>
+</table>
+</details>
+{% endif %}
+{% endif %}
+</div>
+</div>
+{% endif %}
+
+{% if key.startswith('instagram_') and s.profile %}
+<div class="panel">
+<div class="panel-head"><h3>&#128248; Instagram: @{{ s.target }}</h3></div>
+<div class="panel-body">
+<div class="stats" style="grid-template-columns:repeat(4,1fr);">
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Followers</div><div class="val" style="font-size:16px;">{{ s.profile.followers_count }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Following</div><div class="val" style="font-size:16px;">{{ s.profile.followees_count }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Posts</div><div class="val" style="font-size:16px;">{{ s.profile.media_count }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Private</div><div class="val" style="font-size:16px;color:{{ 'var(--amber)' if s.profile.is_private else 'var(--green)' }};">{{ t('yes') if s.profile.is_private else t('no') }}</div></div>
+</div>
+<div class="kv"><span class="k">{{ t('full_name') }}</span><span class="v">{{ s.profile.full_name or t('na') }}</span></div>
+<div class="kv"><span class="k">Bio</span><span class="v">{{ s.profile.biography[:200] or t('na') }}</span></div>
+{% if s.profile.external_url %}<div class="kv"><span class="k">URL</span><span class="v"><a href="{{ s.profile.external_url }}">{{ s.profile.external_url }}</a></span></div>{% endif %}
+</div>
+</div>
+{% endif %}
+
+{% if key.startswith('twitter_') and s.profile %}
+<div class="panel">
+<div class="panel-head"><h3>&#128038; Twitter/X: @{{ s.target }}</h3></div>
+<div class="panel-body">
+<div class="stats" style="grid-template-columns:repeat(4,1fr);">
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Followers</div><div class="val" style="font-size:16px;">{{ s.followers_count }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Following</div><div class="val" style="font-size:16px;">{{ s.following_count }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Verified</div><div class="val" style="font-size:16px;color:{{ 'var(--blue)' if s.profile.verified else 'var(--text-muted)' }};">{{ t('yes') if s.profile.verified else t('no') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Tweets</div><div class="val" style="font-size:16px;">{{ s.tweets|length }}</div></div>
+</div>
+{% if s.profile.description %}<div class="kv"><span class="k">Bio</span><span class="v">{{ s.profile.description[:300] }}</span></div>{% endif %}
+</div>
+</div>
+{% endif %}
+
+{% if key.startswith('facebook_') and s.profiles_found %}
+<div class="panel">
+<div class="panel-head"><h3>&#128100; Facebook: {{ s.target }}</h3></div>
+<div class="panel-body">
+{% for p in s.profiles_found[:10] %}
+<div class="kv"><span class="k"><a href="{{ p.url }}" target="_blank">{{ p.name }}</a></span></div>
+{% endfor %}
+</div>
+</div>
+{% endif %}
+
+{% if key.startswith('linkedin_') and s.profiles %}
+<div class="panel">
+<div class="panel-head"><h3>&#128188; LinkedIn: {{ s.target }}</h3></div>
+<div class="panel-body">
+{% for p in s.profiles[:10] %}
+<div class="kv"><span class="k"><a href="{{ p.url }}" target="_blank">{{ p.name }}</a></span></div>
+{% endfor %}
+</div>
+</div>
+{% endif %}
+
+{% if key.startswith('email_') %}
+<div class="panel">
+<div class="panel-head"><h3>&#9993; {{ t('email') }}: {{ s.email }}</h3></div>
+<div class="panel-body">
+<div class="stats" style="grid-template-columns:repeat(3,1fr);">
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Risk Score</div><div class="val" style="font-size:18px;color:{{ 'var(--green)' if s.risk_score < 30 else 'var(--amber)' if s.risk_score < 60 else 'var(--red)' }};">{{ s.risk_score }}/100</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('breaches_detected') }}</div><div class="val" style="font-size:18px;">{{ s.hibp.total_breaches if s.hibp else 0 }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Web</div><div class="val" style="font-size:18px;">{{ s.web_mentions|length }}</div></div>
+</div>
+{% if s.gravatar %}
+<div style="display:flex;gap:12px;margin-top:8px;padding:8px 10px;background:var(--bg-primary);border:1px solid var(--border);">
+<img src="{{ s.gravatar.avatar }}" style="width:40px;height:40px;flex-shrink:0;">
+<div>
+<div style="font-weight:600;font-size:13px;">{{ s.gravatar.display_name or 'N/A' }}</div>
+<div style="font-size:11px;color:var(--text-dim);">@{{ s.gravatar.preferred_username or 'N/A' }}</div>
+</div>
+</div>
+{% endif %}
+{% if s.hibp and s.hibp.breaches %}
+<div style="margin-top:8px;">
+<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:4px;">{{ t('breaches_detected') }}</div>
+<table class="dense">
+<thead><tr><th>{{ t('source') }}</th><th>{{ t('date') }}</th><th>Data</th></tr></thead>
+<tbody>
+{% for b in s.hibp.breaches %}
+<tr><td>{{ b.name }}</td><td>{{ b.date }}</td><td style="color:var(--text-dim);font-size:11px;">{{ b.data_classes|join(', ') }}</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}
+</div>
+</div>
+{% endif %}
+
+{% if key.startswith('holehe_') and s.registrations %}
+<div class="panel">
+<div class="panel-head"><h3>&#128273; Registered: {{ s.total_registered }}/{{ s.total_checked }}</h3></div>
+<div class="panel-body">
+<div style="display:flex;flex-wrap:wrap;gap:4px;">
+{% for reg in s.registrations %}
+<span class="badge {% if reg.status == 'registered' %}green{% else %}badge{% endif %}">{{ reg.site }}</span>
+{% endfor %}
+</div>
+</div>
+</div>
+{% endif %}
+
+{% if key.startswith('name_') %}
+<div class="panel">
+<div class="panel-head"><h3>&#128100; {{ t('full_name') }}: {{ s.name }}</h3></div>
+<div class="panel-body">
+<div class="stats" style="grid-template-columns:repeat(3,1fr);">
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('all') }}</div><div class="val" style="font-size:18px;">{{ s.total_results }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Social</div><div class="val" style="font-size:18px;">{{ s.profiles|length }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Web</div><div class="val" style="font-size:18px;">{{ s.web_results|length }}</div></div>
+</div>
+{% if s.profiles %}
+<table class="dense">
+<thead><tr><th>{{ t('title') }}</th><th>URL</th></tr></thead>
+<tbody>
+{% for p in s.profiles[:10] %}
+<tr><td>{{ p.title[:80] }}</td><td><a href="{{ p.url }}" target="_blank">{{ p.url[:55] }}&#8230;</a></td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+</div>
+</div>
+{% endif %}
+
+{% if key.startswith('phone_') %}
+<div class="panel">
+<div class="panel-head"><h3>&#128241; {{ t('phone') }}: {{ s.phone }}</h3></div>
+<div class="panel-body">
+<div class="stats" style="grid-template-columns:repeat(4,1fr);">
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Valid</div><div class="val" style="font-size:16px;color:{{ 'var(--green)' if s.valid else 'var(--red)' }};">{{ t('yes') if s.valid else t('no') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Country</div><div class="val" style="font-size:16px;">{{ s.country or t('na') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Carrier</div><div class="val" style="font-size:16px;">{{ s.carrier or t('na') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Location</div><div class="val" style="font-size:16px;">{{ s.location or t('na') }}</div></div>
+</div>
+</div>
+</div>
+{% endif %}
+
+{% if key.startswith('dorks_') %}
+<div class="panel">
+<div class="panel-head"><h3>&#128269; Google Dorks: {{ s.total_results }} hits</h3></div>
+<div class="panel-body">
+{% for cat, items in s.categories.items() %}
+<details>
+<summary style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">{{ cat|replace('_',' ')|capitalize }} ({{ items|length }})</summary>
+{% for item in items %}
+<div class="kv"><span class="k"><a href="{{ item.url }}" target="_blank">{{ item.title or item.url[:60] }}</a></span></div>
+{% endfor %}
+</details>
+{% endfor %}
+</div>
+</div>
+{% endif %}
+
+{% if key.startswith('url_') %}
+<div class="panel">
+<div class="panel-head"><h3>&#128279; URL Analysis</h3></div>
+<div class="panel-body">
+<div class="kv"><span class="k">URL</span><span class="v"><a href="{{ s.url }}" target="_blank">{{ s.url[:80] }}</a></span></div>
+{% if s.page_title %}<div class="kv"><span class="k">{{ t('title') }}</span><span class="v">{{ s.page_title }}</span></div>{% endif %}
+{% if s.tech_stack %}<div class="kv"><span class="k">Tech</span><span class="v">{% for t in s.tech_stack %}<span class="badge blue" style="margin-right:3px;">{{ t }}</span>{% endfor %}</span></div>{% endif %}
+{% if s.emails_found %}<div class="kv"><span class="k">{{ t('email') }}</span><span class="v">{% for e in s.emails_found %}<span class="badge" style="margin-right:3px;">{{ e }}</span>{% endfor %}</span></div>{% endif %}
+</div>
+</div>
+{% endif %}
+
+{% if key.startswith('breaches_') %}
+<div class="panel">
+<div class="panel-head"><h3>&#9888; {{ t('breaches_detected') }}</h3></div>
+<div class="panel-body">
+{% for site in s.leak_sites %}
+<div class="kv"><span class="k">{{ site.site }}</span><span class="v"><span class="badge {% if 'found' in site.status %}green{% elif 'error' in site.status %}red{% endif %}">{{ site.status }}</span></span></div>
+{% endfor %}
+</div>
+</div>
+{% endif %}
+
+{% if key.startswith('deepweb_') %}
+<div class="panel">
+<div class="panel-head"><h3>&#127760; Deep Web</h3></div>
+<div class="panel-body">
+<div class="kv"><span class="k">Tor</span><span class="v"><span class="badge {% if s.tor_available %}green{% else %}red{% endif %}">{{ t('yes') if s.tor_available else t('no') }}</span></span></div>
+{% if s.scanned_onions %}
+<table class="dense">
+<thead><tr><th>.onion</th><th>{{ t('status') }}</th></tr></thead>
+<tbody>
+{% for o in s.scanned_onions %}
+<tr><td class="mono" style="font-size:11px;">{{ o.url }}</td><td><span class="badge {% if o.status == 'accessible' %}green{% endif %}">{{ o.status }}</span></td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+</div>
+</div>
+{% endif %}
+
+{% if key == 'image_social' %}
+{% include "_image_results.html" %}
+{% endif %}
+
+</div>
+{% endfor %}
+
+{% elif search.query_type == 'username' %}
+<div class="panel">
+<div class="panel-head"><h3>&#128270; {{ t('username') }} {{ t('search') }}</h3></div>
+<div class="panel-body">
+<div class="stats" style="grid-template-columns:repeat(4,1fr);">
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('platform') }}</div><div class="val" style="font-size:20px;">{{ r.profiles|length }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('profiles_found') }}</div><div class="val" style="font-size:20px;color:var(--green)">{{ r.total_found }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Unverified</div><div class="val" style="font-size:20px;color:var(--amber)">{{ r.total_unverified }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Hit Rate</div><div class="val" style="font-size:20px;">{{ "%.0f"|format(r.total_found / r.profiles|length * 100 if r.profiles else 0) }}%</div></div>
+</div>
+<table class="dense">
+<thead><tr><th>{{ t('platform') }}</th><th>URL</th><th>{{ t('status') }}</th></tr></thead>
+<tbody>
+{% for p in r.profiles if p.status == 'found' %}
+<tr><td style="font-weight:500;">{{ p.platform }}</td><td><a href="{{ p.url }}" target="_blank">{{ p.url[:55] }}&#8230;</a></td><td><span class="badge green">{{ t('found') }}</span></td></tr>
+{% endfor %}
+{% for p in r.profiles if p.status == 'unverified' %}
+<tr><td style="font-weight:500;color:var(--amber);">{{ p.platform }}</td><td><a href="{{ p.url }}" target="_blank" style="color:var(--amber);">{{ p.url[:55] }}&#8230;</a></td><td><span class="badge amber">Unverified</span></td></tr>
+{% endfor %}
+{% for p in r.profiles if p.status in ('not_found','blocked','redirect_login','redirect_away','rate_limited','error','timeout') %}
+<tr><td style="color:var(--text-dim);font-size:11px;">{{ p.platform }}</td><td style="color:var(--text-dim);font-size:11px;">{{ p.url[:45] }}&#8230;</td><td><span class="badge" style="background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border);">{{ p.status }}</span></td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+
+{% elif search.query_type == 'email' %}
+<div class="panel">
+<div class="panel-head"><h3>&#9993; {{ t('email') }} {{ t('search') }}</h3></div>
+<div class="panel-body">
+<div class="stats" style="grid-template-columns:repeat(3,1fr);">
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Risk</div><div class="val" style="font-size:20px;color:{{ 'var(--green)' if r.risk_score < 30 else 'var(--amber)' if r.risk_score < 60 else 'var(--red)' }};">{{ r.risk_score }}/100</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('breaches_detected') }}</div><div class="val" style="font-size:20px;">{{ r.hibp.total_breaches if r.hibp else 0 }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Web</div><div class="val" style="font-size:20px;">{{ r.web_mentions|length }}</div></div>
+</div>
+{% if r.gravatar %}
+<div style="display:flex;gap:12px;margin-top:8px;padding:10px 12px;background:var(--bg-primary);border:1px solid var(--border);">
+<img src="{{ r.gravatar.avatar }}" style="width:48px;height:48px;flex-shrink:0;">
+<div>
+<div style="font-weight:600;font-size:14px;">{{ r.gravatar.display_name or 'N/A' }}</div>
+<div style="font-size:12px;color:var(--text-dim);">@{{ r.gravatar.preferred_username or 'N/A' }}</div>
+</div>
+</div>
+{% endif %}
+</div>
+</div>
+{% if r.hibp and r.hibp.breaches %}
+<div class="panel">
+<div class="panel-head"><h3>&#9888; {{ t('breaches_detected') }} ({{ r.hibp.total_breaches }})</h3></div>
+<div class="panel-body plain">
+<table class="dense">
+<thead><tr><th>{{ t('source') }}</th><th>{{ t('date') }}</th><th>Data</th></tr></thead>
+<tbody>
+{% for b in r.hibp.breaches %}
+<tr><td style="font-weight:500;">{{ b.name }}</td><td>{{ b.date }}</td><td style="color:var(--text-dim);font-size:11px;">{{ b.data_classes|join(', ') }}</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+{% endif %}
+
+{% elif search.query_type == 'name' %}
+<div class="panel">
+<div class="panel-head"><h3>&#128100; {{ t('full_name') }} {{ t('search') }}</h3></div>
+<div class="panel-body">
+<div class="stats" style="grid-template-columns:repeat(3,1fr);">
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('all') }}</div><div class="val" style="font-size:20px;">{{ r.total_results }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Social</div><div class="val" style="font-size:20px;">{{ r.profiles|length }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Web</div><div class="val" style="font-size:20px;">{{ r.web_results|length }}</div></div>
+</div>
+{% if r.profiles %}
+<table class="dense">
+<thead><tr><th>{{ t('source') }}</th><th>{{ t('title') }}</th><th>URL</th></tr></thead>
+<tbody>
+{% for p in r.profiles %}
+<tr><td><span class="badge">{{ p.source }}</span></td><td>{{ p.title[:80] }}</td><td><a href="{{ p.url }}" target="_blank">{{ p.url[:55] }}&#8230;</a></td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+</div>
+</div>
+
+{% elif search.query_type == 'phone' %}
+<div class="panel">
+<div class="panel-head"><h3>&#128241; {{ t('phone') }} {{ t('search') }}</h3></div>
+<div class="panel-body">
+<div class="stats" style="grid-template-columns:repeat(4,1fr);">
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Valid</div><div class="val" style="font-size:18px;color:{{ 'var(--green)' if r.valid else 'var(--red)' }};">{{ t('yes') if r.valid else t('no') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Country</div><div class="val" style="font-size:18px;">{{ r.country or t('na') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Carrier</div><div class="val" style="font-size:18px;">{{ r.carrier or t('na') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">Location</div><div class="val" style="font-size:18px;">{{ r.location or t('na') }}</div></div>
+</div>
+</div>
+</div>
+{% endif %}
+
+{% endif %}
+
+{% if r.get('image_social') %}
+{% set s = r['image_social'] %}
+{% include "_image_results.html" %}
+{% endif %}
+
+{% if search.ai_analysis %}
+<div class="panel mt-2">
+<div class="panel-head"><h3>&#129302; AI {{ t('search') }}</h3><span class="badge green">IA v2</span></div>
+<div class="panel-body">
+<div class="ai">
+{{ search.ai_analysis | markdown }}
+</div>
+</div>
+</div>
+{% elif search.status == 'completed' %}
+<div class="alert warn">AI analysis requires OpenRouter API key in <code>.env</code></div>
+{% endif %}
+
+<div class="btn-group mt-2">
+<a href="/deep-search" class="btn prime">{{ t('new_investigation_btn') }}</a>
+<a href="/search" class="btn">{{ t('simple_search') }}</a>
+{% if search.report_path %}
+<a href="/view-report/{{ search.id }}" class="btn" target="_blank">{{ t('report') }}</a>
+{% endif %}
+<a href="/print-report/{{ search.id }}" class="btn" target="_blank">PDF</a>
+</div>
+
+{% endblock %}

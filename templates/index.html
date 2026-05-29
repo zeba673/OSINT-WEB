@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}{{ t('nav_dashboard') }}{% endblock %}
+{% block content %}
+
+<div class="page-head">
+<div>
+<h1>{{ t('dashboard_title') }}</h1>
+<p>{{ t('dashboard_subtitle') }}</p>
+</div>
+</div>
+
+<div class="stats">
+<div class="stat">
+<div class="lbl">{{ t('stat_investigations') }}</div>
+<div class="val">{{ recent|length if recent else 0 }}</div>
+</div>
+<div class="stat">
+<div class="lbl">{{ t('stat_status') }}</div>
+<div class="val" style="color:var(--green)">{{ t('operational') }}</div>
+<div class="sub" style="color:var(--green)">&#9679; {{ t('all_systems_nominal') }}</div>
+</div>
+<div class="stat">
+<div class="lbl">{{ t('stat_sources') }}</div>
+<div class="val">{{ accounts|length if accounts else 0 }}</div>
+<div class="sub">{{ accounts|selectattr('configured')|list|length if accounts else 0 }} {{ t('connected') }}</div>
+</div>
+<div class="stat">
+<div class="lbl">{{ t('stat_ai') }}</div>
+<div class="val" style="color:var(--green)">{{ t('operational') }}</div>
+</div>
+</div>
+
+<div class="qsearch">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+<h2>{{ t('quick_investigation') }}</h2>
+<div class="btn-group">
+<a href="/deep-search" class="btn btn-sm prime">{{ t('full_investigation') }}</a>
+</div>
+</div>
+<div class="qrow">
+<input class="fcontrol" type="text" id="qtarget" placeholder="{{ t('enter_target') }}"
+onkeydown="if(event.key==='Enter'){var v=this.value.trim();if(!v)return;if(v.includes('@'))window.location='/search/run?query_type=email&query_value='+encodeURI(v);else window.location='/search/run?query_type=username&query_value='+encodeURI(v);}">
+<button class="btn sm" onclick="var v=document.getElementById('qtarget').value.trim();if(v){if(v.includes('@'))window.location='/search/run?query_type=email&query_value='+encodeURI(v);else window.location='/search/run?query_type=username&query_value='+encodeURI(v);}">{{ t('search') }}</button>
+</div>
+</div>
+
+<div class="g2">
+<div class="panel">
+<div class="panel-head">
+<h3>{{ t('recent_investigations') }}</h3>
+<a href="/history" class="btn btn-sm">{{ t('view_all') }} &rarr;</a>
+</div>
+<div class="panel-body plain">
+{% if recent %}
+<table class="dense">
+<thead><tr><th>{{ t('id') }}</th><th>{{ t('type') }}</th><th>{{ t('target') }}</th><th>{{ t('status') }}</th></tr></thead>
+<tbody>
+{% for s in recent %}
+<tr onclick="window.location='/results/{{ s.id }}'" style="cursor:pointer;">
+<td class="mono" style="color:var(--text-muted)">#{{ s.id }}</td>
+<td><span class="badge">{{ s.query_type }}</span></td>
+<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.query_value[:50] }}</td>
+<td>
+{% if s.status == 'completed' %}<span class="badge green">&#9679; {{ t('completed') }}</span>
+{% elif s.status == 'running' %}<span class="badge amber">&#9679; {{ t('running') }}</span>
+{% elif s.status == 'error' %}<span class="badge red">&#9679; {{ t('error') }}</span>
+{% else %}<span class="badge">{{ s.status }}</span>{% endif %}
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<div class="empty">
+<div class="ico">&#9776;</div>
+<h3>{{ t('no_investigations_yet') }}</h3>
+<p>{{ t('no_investigations_desc') }}</p>
+</div>
+{% endif %}
+</div>
+</div>
+
+<div class="panel">
+<div class="panel-head">
+<h3>{{ t('connected_sources') }}</h3>
+<a href="/accounts" class="btn btn-sm">{{ t('manage_accounts') }}</a>
+</div>
+<div class="panel-body">
+{% if accounts %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+{% for a in accounts %}
+<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg-primary);border:1px solid var(--border);">
+<span style="width:5px;height:5px;background:{{ 'var(--green)' if a.configured else 'var(--text-muted)' }};flex-shrink:0;"></span>
+<div>
+<div style="font-size:11px;font-weight:500;color:var(--text);">{{ a.platform|capitalize }}</div>
+<div style="font-size:9px;color:var(--text-muted);">{{ t('connected') if a.configured else t('not_configured') }}</div>
+</div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty" style="padding:20px;">
+<p><a href="/accounts">{{ t('go_to_accounts') }}</a></p>
+</div>
+{% endif %}
+</div>
+</div>
+</div>
+
+<div class="panel mt-2">
+<div class="panel-head"><h3>{{ t('platform_capabilities') }}</h3></div>
+<div class="panel-body">
+<div class="sgrid">
+<div class="scard"><div class="ico">&#128270;</div><div class="name">{{ t('cap_username') }}</div><div class="desc">{{ t('cap_username_desc') }}</div><div class="st"><span class="badge green">{{ t('active') }}</span></div></div>
+<div class="scard"><div class="ico">&#9993;</div><div class="name">{{ t('cap_email') }}</div><div class="desc">{{ t('cap_email_desc') }}</div><div class="st"><span class="badge green">{{ t('active') }}</span></div></div>
+<div class="scard"><div class="ico">&#128100;</div><div class="name">{{ t('cap_identity') }}</div><div class="desc">{{ t('cap_identity_desc') }}</div><div class="st"><span class="badge green">{{ t('active') }}</span></div></div>
+<div class="scard"><div class="ico">&#128241;</div><div class="name">{{ t('cap_phone') }}</div><div class="desc">{{ t('cap_phone_desc') }}</div><div class="st"><span class="badge green">{{ t('active') }}</span></div></div>
+<div class="scard"><div class="ico">&#127760;</div><div class="name">{{ t('cap_deepweb') }}</div><div class="desc">{{ t('cap_deepweb_desc') }}</div><div class="st"><span class="badge">{{ t('requires_tor') }}</span></div></div>
+<div class="scard"><div class="ico">&#128247;</div><div class="name">{{ t('cap_social') }}</div><div class="desc">{{ t('cap_social_desc') }}</div><div class="st"><span class="badge">{{ t('requires_accounts') }}</span></div></div>
+<div class="scard"><div class="ico">&#128269;</div><div class="name">{{ t('cap_dorking') }}</div><div class="desc">{{ t('cap_dorking_desc') }}</div><div class="st"><span class="badge green">{{ t('active') }}</span></div></div>
+<div class="scard"><div class="ico">&#129302;</div><div class="name">{{ t('cap_ai') }}</div><div class="desc">{{ t('cap_ai_desc') }}</div><div class="st"><span class="badge green">{{ t('active') }}</span></div></div>
+</div>
+</div>
+</div>
+
+{% endblock %}
