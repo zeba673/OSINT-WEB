@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🕵️ OSINT Web
+# 🕵️ TracePoint
 
 ### Multi-Vector Intelligence Collection Platform
 
@@ -12,7 +12,7 @@
 [![Platforms](https://img.shields.io/badge/Platforms-50+-brightgreen?style=flat)](#-username-intelligence)
 [![Raspberry Pi](https://img.shields.io/badge/RPi-5%20Ready-c51a4a?style=flat&logo=raspberrypi)](https://raspberrypi.com)
 
-**OSINT Web** is a professional open-source intelligence collection platform designed to aggregate, correlate, and analyze publicly available information about a target from **50+ sources** — all from a clean web interface. Powered by **multi-model AI** via OpenRouter.
+**TracePoint** is a professional open-source intelligence collection platform designed to aggregate, correlate, and analyze publicly available information about a target from **50+ sources** — all from a clean web interface. Powered by **multi-model AI** via OpenRouter.
 
 <img src="https://img.shields.io/badge/STATUS-ACTIVE-success?style=for-the-badge&logo=dependabot"/>
 
@@ -156,8 +156,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/zeba673/OSINT-WEB.git
-cd OSINT-WEB
+git clone https://github.com/zeba673/TracePoint.git
+cd TracePoint
 
 # Create virtual environment
 python3.12 -m venv venv
@@ -179,12 +179,12 @@ Then open **http://localhost:8000** in your browser.
 ### Docker (recommended)
 
 ```bash
-docker build -t osint-web .
+docker build -t tracepoint .
 docker run -d -p 8000:8000 \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/uploads:/app/uploads \
   -v $(pwd)/.env:/app/.env \
-  osint-web
+  tracepoint
 ```
 
 ---
@@ -215,7 +215,7 @@ docker run -d -p 8000:8000 \
 
 ## 🤖 AI Analysis Engine
 
-OSINT Web uses **intelligent model routing** via OpenRouter to optimize cost and capability:
+TracePoint uses **intelligent model routing** via OpenRouter to optimize cost and capability:
 
 | Input Type | Model | Cost | Capability |
 |------------|-------|------|------------|
@@ -251,7 +251,7 @@ Install via CasaOS App Store as a custom Docker Compose application.
 ```bash
 docker run -d -p 80:8000 \
   -e VIRTUAL_HOST=osint.yourdomain.com \
-  osint-web
+  tracepoint
 ```
 
 ---
@@ -277,7 +277,7 @@ docker run -d -p 80:8000 \
 
 ## ⚠️ Legal & Ethical
 
-**OSINT Web** is designed for:
+**TracePoint** is designed for:
 - **Security researchers** conducting authorized assessments
 - **Journalists** investigating public figures
 - **Law enforcement** with proper legal authority

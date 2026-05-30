@@ -9,7 +9,7 @@ class Config:
     OPENROUTER_API_KEY: str = os.getenv('OPENROUTER_API_KEY', '')
     OPENROUTER_BASE_URL: str = 'https://openrouter.ai/api/v1'
     OPENROUTER_SITE_URL: str = os.getenv('OPENROUTER_SITE_URL', 'http://localhost:8000')
-    OPENROUTER_SITE_NAME: str = os.getenv('OPENROUTER_SITE_NAME', 'OSINT Web')
+    OPENROUTER_SITE_NAME: str = os.getenv('OPENROUTER_SITE_NAME', 'TracePoint')
 
     OPENROUTER_MODEL_TEXT: str = os.getenv('OPENROUTER_MODEL_TEXT', 'deepseek/deepseek-v4-flash')
     OPENROUTER_MODEL_VISION: str = os.getenv('OPENROUTER_MODEL_VISION', 'google/gemini-3.5-flash')

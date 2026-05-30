@@ -42,7 +42,7 @@ async def check_hibp(email: str) -> dict:
         async with httpx.AsyncClient(timeout=15) as client:
             resp = await client.get(
                 f'https://haveibeenpwned.com/api/v3/breachedaccount/{email}',
-                headers={'hibp-api-key': '', 'user-agent': 'OSINT-Web'}
+                headers={'hibp-api-key': '', 'user-agent': 'TracePoint'}
             )
             if resp.status_code == 200:
                 result['breaches'] = [

@@ -65,9 +65,9 @@ async def analyze_results(search_data: dict, image_path: str = None) -> str:
     if isinstance(results, dict):
         for v in results.values():
             if isinstance(v, dict):
-                profile_count += v.get('profiles', []) if isinstance(v.get('profiles'), list) else 0
-                profile_count += v.get('total_found', 0)
-                profile_count += v.get('found_profiles', []) if isinstance(v.get('found_profiles'), list) else 0
+                profile_count += len(v.get('profiles', [])) if isinstance(v.get('profiles'), list) else 0
+                profile_count += int(v.get('total_found', 0))
+                profile_count += len(v.get('found_profiles', [])) if isinstance(v.get('found_profiles'), list) else 0
 
     model = _select_model(has_image=has_image, profile_count=profile_count)
     prompt = _build_prompt(search_data)

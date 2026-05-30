@@ -2,12 +2,12 @@
 <html lang="{{ lang }}">
 <head>
 <meta charset="UTF-8">
-<title>OSINT Report — {{ search.query_value[:60] }}</title>
+<title>TracePoint Report — {{ search.query_value[:60] }}</title>
 <style>
 @page {
     margin: 20mm 18mm 20mm 18mm;
     size: A4;
-    @top-center { content: "OSINT INTELLIGENCE REPORT"; font: 8px 'Courier New', monospace; color: #666; }
+    @top-center { content: "TRACEPOINT INTELLIGENCE REPORT"; font: 8px 'Courier New', monospace; color: #666; }
     @bottom-center { content: "Page " counter(page) " of " counter(pages); font: 8px 'Courier New', monospace; color: #666; }
 }
 
@@ -251,7 +251,7 @@ a::after { content: " (" attr(href) ")"; font-size: 7.5pt; color: #555; }
 
 <div class="header">
 <div class="header-left">
-<div class="agency">OSINT Web</div>
+<div class="agency">TracePoint</div>
 <div class="sub">INTELLIGENCE COLLECTION PLATFORM</div>
 </div>
 <div class="header-right">
@@ -468,13 +468,13 @@ Risk score: {{ r.risk_score }}/100. {{ r.hibp.total_breaches if r.hibp else 0 }}
 <tr><td>Status</td><td>{{ search.status }}</td></tr>
 <tr><td>Generated</td><td>{{ created_at.strftime('%Y-%m-%d %H:%M UTC') if created_at else '' }}</td></tr>
 <tr><td>Classification</td><td>CONFIDENTIAL</td></tr>
-<tr><td>Platform</td><td>OSINT Web v2.0</td></tr>
+<tr><td>Platform</td><td>TracePoint v2.0</td></tr>
 </tbody>
 </table>
 </div>
 
 <div class="footer">
-<p>OSINT Web — Intelligence Collection Platform</p>
+<p>TracePoint — Intelligence Collection Platform</p>
 <p>Case #{{ search.id }} | Generated {{ created_at.strftime('%Y-%m-%d %H:%M') if created_at else '' }} | Classification: CONFIDENTIAL</p>
 <p>This document contains sensitive information. Handle according to applicable regulations.</p>
 </div>

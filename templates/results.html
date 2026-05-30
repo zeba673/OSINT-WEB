@@ -420,11 +420,10 @@
 </div>
 {% endif %}
 
-{% endif %}
-
-{% if r.get('image_social') %}
-{% set s = r['image_social'] %}
+{% if search.results.get('image_social') %}
+{% set s = search.results['image_social'] %}
 {% include "_image_results.html" %}
+{% endif %}
 {% endif %}
 
 {% if search.ai_analysis %}

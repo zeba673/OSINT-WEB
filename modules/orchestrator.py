@@ -1,3 +1,3 @@
 """
-OSINT Web - AI-Powered Intelligence Platform
+TracePoint - Intelligence Collection Platform
 """

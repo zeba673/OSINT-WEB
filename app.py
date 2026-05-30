@@ -40,7 +40,7 @@ from modules.accounts_config import (
     get_all_configured, ACCOUNT_SCHEMAS
 )
 
-app = FastAPI(title='OSINT Web', version='2.0.0')
+app = FastAPI(title='TracePoint', version='2.0.0')
 
 templates = Jinja2Templates(directory=Path(__file__).parent / 'templates')
 templates.env.filters['markdown'] = lambda text: markdown.markdown(text or '', extensions=['extra'])
