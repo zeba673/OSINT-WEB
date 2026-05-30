@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}2FA Setup{% endblock %}
+{% block content %}
+
+<div class="auth-page">
+<div class="auth-card">
+<div class="auth-head">
+<div class="mark" style="font-size:28px;width:48px;height:48px;">TP</div>
+<div>
+<div class="auth-title">TracePoint</div>
+<div class="auth-sub">{{ 'TWO-FACTOR AUTHENTICATION' if lang == 'en' else 'AUTENTICACIÓN DE DOS FACTORES' }}</div>
+</div>
+</div>
+<h2 class="auth-heading">{{ 'Set Up 2FA' if lang == 'en' else 'Configurar 2FA' }}</h2>
+
+<div class="alert info">
+{{ 'Scan this QR code with Google Authenticator to enable two-factor authentication.' if lang == 'en' else 'Escanea este código QR con Google Authenticator para activar la autenticación de dos factores.' }}
+</div>
+
+{% if error %}
+<div class="alert error">{{ error }}</div>
+{% endif %}
+
+<div style="display:flex;flex-direction:column;align-items:center;gap:var(--space-md);padding:var(--space-lg);">
+<div style="background:#fff;padding:12px;border-radius:var(--radius);">
+{{ qr_svg | safe }}
+</div>
+<div style="font-size:12px;color:var(--fg-2);font-family:var(--font-mono);">
+{{ 'Secret:' if lang == 'en' else 'Secreto:' }} <span style="color:var(--fg);">{{ user.totp_secret }}</span>
+</div>
+</div>
+
+<form method="post" action="/auth/2fa/setup">
+<div class="fgroup">
+<label>{{ 'Verification Code' if lang == 'en' else 'Código de Verificación' }}</label>
+<input class="fcontrol" type="text" name="code" required placeholder="000000" maxlength="6" style="text-align:center;font-size:24px;letter-spacing:8px;font-family:var(--font-mono);">
+<div class="fhelp">{{ 'Enter the 6-digit code from Google Authenticator' if lang == 'en' else 'Ingresa el código de 6 dígitos de Google Authenticator' }}</div>
+</div>
+<button type="submit" class="btn prime lg" style="width:100%;margin-top:var(--space-md);">
+{{ 'Verify & Enable' if lang == 'en' else 'Verificar y Activar' }}
+</button>
+</form>
+
+<form method="post" action="/auth/2fa/skip" style="margin-top:var(--space-sm);">
+<button type="submit" class="btn lg" style="width:100%;border-color:var(--outline-variant);color:var(--fg-2);">
+{{ 'Skip — Set up later' if lang == 'en' else 'Saltar — Configurar después' }}
+</button>
+</form>
+
+<div class="auth-foot" style="margin-top:var(--space-md);">
+<a href="/auth/logout">{{ 'Log out and use later' if lang == 'en' else 'Cerrar sesión y usar después' }}</a>
+</div>
+</div>
+</div>
+
+{% endblock %}

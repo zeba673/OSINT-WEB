@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Confidential{% endblock %}
+{% block content %}
+
+<div class="page-head">
+<div>
+<h1>{{ 'Confidential Investigations' if lang == 'en' else 'Investigaciones Confidenciales' }}</h1>
+<p>{{ 'Investigations marked as confidential — visible only to you.' if lang == 'en' else 'Investigaciones marcadas como confidenciales — visibles solo para ti.' }}</p>
+</div>
+<span class="badge" style="border-color:var(--data-amber);color:var(--data-amber);background:color-mix(in srgb,var(--data-amber) 10%,transparent);">
+<span class="material-symbols-outlined" style="font-size:14px;">lock</span>
+{{ 'SECURE' if lang == 'en' else 'SEGURO' }}
+</span>
+</div>
+
+{% if searches %}
+<table class="data-table">
+<thead>
+<tr>
+<th>{{ 'ID' if lang == 'en' else 'ID' }}</th>
+<th>{{ 'Type' if lang == 'en' else 'Tipo' }}</th>
+<th>{{ 'Query' if lang == 'en' else 'Consulta' }}</th>
+<th>{{ 'Status' if lang == 'en' else 'Estado' }}</th>
+<th>{{ 'Date' if lang == 'en' else 'Fecha' }}</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+{% for s in searches %}
+<tr>
+<td>#{{ s.id }}</td>
+<td><span class="chip">{{ s.query_type }}</span></td>
+<td style="font-family:var(--font-mono);font-size:12px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.query_value }}</td>
+<td>
+{% if s.status == 'completed' %}
+<span class="status-dot" style="background:var(--data-green);"></span> {{ 'Completed' if lang == 'en' else 'Completado' }}
+{% elif s.status == 'error' %}
+<span class="status-dot" style="background:var(--data-amber);"></span> {{ 'Error' if lang == 'en' else 'Error' }}
+{% else %}
+<span class="status-dot" style="background:var(--outline-variant);"></span> {{ 'Running' if lang == 'en' else 'Ejecutando' }}
+{% endif %}
+</td>
+<td>{{ s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else '' }}</td>
+<td>
+<a href="/results/{{ s.id }}" class="btn btn-sm prime">{{ 'VIEW' if lang == 'en' else 'VER' }}</a>
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<div style="display:flex;flex-direction:column;align-items:center;gap:var(--space-md);padding:var(--space-xl);color:var(--fg-2);">
+<span class="material-symbols-outlined" style="font-size:48px;">lock_open</span>
+<div style="font-size:14px;">{{ 'No confidential investigations yet.' if lang == 'en' else 'Aún no hay investigaciones confidenciales.' }}</div>
+<a href="/search" class="btn prime">{{ 'Start an investigation' if lang == 'en' else 'Iniciar investigación' }}</a>
+</div>
+{% endif %}
+
+{% endblock %}

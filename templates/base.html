@@ -4,62 +4,95 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TracePoint — {% block title %}{{ t('nav_dashboard') }}{% endblock %}</title>
-<link rel="stylesheet" href="/static/css/style.css?v=2">
+<link rel="stylesheet" href="/static/css/style.css?v=3">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 </head>
 <body>
 <div class="app">
 
 <aside class="sidebar">
 <div class="sidebar-head">
-<div class="mark">OW</div>
+<div class="mark">TP</div>
 <div>
 <div class="title">TracePoint</div>
-<div class="sub">v2.0 // {{ 'INTEL' if lang == 'en' else 'INTELIGENCIA' }}</div>
+<div class="sub">{{ 'OSINT INTELLIGENCE' if lang == 'en' else 'INTELIGENCIA OSINT' }}</div>
 </div>
 </div>
 
 <nav class="sidebar-nav">
 <div class="nav-group">
-<div class="nav-label">{{ t('nav_main') }}</div>
+<div class="nav-label">{{ 'INTELLIGENCE' if lang == 'en' else 'INTELIGENCIA' }}</div>
 <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">
-<span class="ico">&#9679;</span> {{ t('nav_dashboard') }}
+<span class="ico material-symbols-outlined" style="font-variation-settings:'FILL'{% if request.url.path == '/' %}:1{% else %}:0{% endif %}">dashboard</span> {{ t('nav_dashboard') }}
+</a>
+<a href="/search" class="nav-item {% if request.url.path == '/search' %}active{% endif %}">
+<span class="ico material-symbols-outlined">search</span> {{ t('nav_simple_search') }}
 </a>
 <a href="/deep-search" class="nav-item {% if request.url.path == '/deep-search' %}active{% endif %}">
-<span class="ico">&#8862;</span> {{ t('nav_deep_search') }}
-</a>
-<a href="/search" class="nav-item {% if '/search' in request.url.path and '/deep' not in request.url.path %}active{% endif %}">
-<span class="ico">&#8999;</span> {{ t('nav_simple_search') }}
-</a>
-<a href="/history" class="nav-item {% if request.url.path == '/history' %}active{% endif %}">
-<span class="ico">&#9776;</span> {{ t('nav_history') }}
+<span class="ico material-symbols-outlined">saved_search</span> {{ t('nav_deep_search') }}
 </a>
 </div>
 
 <div class="nav-group">
-<div class="nav-label">{{ t('nav_config') }}</div>
-<a href="/accounts" class="nav-item {% if request.url.path == '/accounts' %}active{% endif %}">
-<span class="ico">&#9881;</span> {{ t('nav_accounts') }}
+<div class="nav-label">DATA</div>
+<a href="/history" class="nav-item {% if request.url.path == '/history' %}active{% endif %}">
+<span class="ico material-symbols-outlined">history</span> {{ t('nav_history') }}
 </a>
+{% if user %}
+<a href="/confidential" class="nav-item {% if request.url.path == '/confidential' %}active{% endif %}">
+<span class="ico material-symbols-outlined" style="font-variation-settings:'FILL'{% if request.url.path == '/confidential' %}:1{% else %}:0{% endif %}">lock</span> {{ 'Confidential' if lang == 'en' else 'Confidencial' }}
+</a>
+{% endif %}
+</div>
+
+<div class="nav-group">
+<div class="nav-label">SYSTEM</div>
+<a href="/accounts" class="nav-item {% if request.url.path == '/accounts' %}active{% endif %}">
+<span class="ico material-symbols-outlined">manage_accounts</span> {{ t('nav_accounts') }}
+</a>
+{% if user %}
+<a href="/auth/2fa/setup" class="nav-item {% if request.url.path == '/auth/2fa/setup' %}active{% endif %}">
+<span class="ico material-symbols-outlined">security</span> {{ '2FA' if lang == 'en' else '2FA' }}
+</a>
+<a href="/auth/logout" class="nav-item">
+<span class="ico material-symbols-outlined">logout</span> {{ 'Logout' if lang == 'en' else 'Salir' }}
+</a>
+{% else %}
+<a href="/auth/login" class="nav-item {% if request.url.path.startswith('/auth/') %}active{% endif %}">
+<span class="ico material-symbols-outlined">login</span> {{ 'Login' if lang == 'en' else 'Iniciar Sesión' }}
+</a>
+{% endif %}
 </div>
 </nav>
 
 <div class="sidebar-foot">
 <span class="dot"></span>
+{% if user %}
+<span style="font-family:var(--font-mono);font-size:10px;">{{ user.display_name }}</span>
+{% else %}
 <span>{{ t('system_status') }}</span>
+{% endif %}
 </div>
 </aside>
 
 <div class="main">
 <header class="topbar">
 <div class="topbar-search">
-<span class="ico">&#8999;</span>
+<span class="ico material-symbols-outlined">search</span>
 <input type="text" id="qsearch" placeholder="{{ t('search_placeholder') }}"
 onkeydown="if(event.key==='Enter'&&this.value.trim())window.location='/search/run?query_type=username&query_value='+encodeURIComponent(this.value.trim())">
 </div>
 
+<div class="topbar-status">{{ t('all_systems_nominal') }}</div>
+
 <div class="topbar-actions">
-<button class="topbar-btn" onclick="window.location='/deep-search'" title="{{ t('new_investigation') }}">+</button>
-<button class="topbar-btn theme-btn" id="themeToggle" title="{{ t('dark_mode') if theme == 'dark' else t('light_mode') }}">&#9681;</button>
+<button class="topbar-btn" onclick="window.location='/deep-search'" title="{{ t('new_investigation') }}">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="topbar-btn theme-btn" id="themeToggle" title="{{ t('dark_mode') if theme == 'dark' else t('light_mode') }}">
+<span class="material-symbols-outlined">{{ 'dark_mode' if theme == 'dark' else 'light_mode' }}</span>
+</button>
 <div class="dropdown">
 <button class="topbar-btn lang-btn" id="langToggle">{{ lang|upper }}</button>
 <div class="dropdown-menu" id="langMenu">
@@ -92,7 +125,8 @@ document.getElementById('themeToggle').addEventListener('click', function(){
     var next = cur === 'dark' ? 'light' : 'dark';
     html.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
-    this.title = next === 'dark' ? '{{ t("dark_mode") }}' : '{{ t("light_mode") }}';
+    var icon = this.querySelector('.material-symbols-outlined');
+    icon.textContent = next === 'dark' ? 'dark_mode' : 'light_mode';
 });
 
 function setLang(lang){

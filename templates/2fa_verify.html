@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}2FA Required{% endblock %}
+{% block content %}
+
+<div class="auth-page">
+<div class="auth-card">
+<div class="auth-head">
+<div class="mark" style="font-size:28px;width:48px;height:48px;">TP</div>
+<div>
+<div class="auth-title">TracePoint</div>
+<div class="auth-sub">{{ 'CONFIDENTIAL ACCESS' if lang == 'en' else 'ACCESO CONFIDENCIAL' }}</div>
+</div>
+</div>
+<h2 class="auth-heading">{{ 'Two-Factor Authentication Required' if lang == 'en' else 'Autenticación de Dos Factores Requerida' }}</h2>
+
+<div class="alert info">
+<span class="material-symbols-outlined" style="vertical-align:middle;font-size:18px;">lock</span>
+{{ 'Enter your 2FA code to access confidential investigations.' if lang == 'en' else 'Ingresa tu código 2FA para acceder a investigaciones confidenciales.' }}
+</div>
+
+{% if error %}
+<div class="alert error">{{ error }}</div>
+{% endif %}
+
+<form method="post" action="/confidential/verify">
+{% if redirect_url %}<input type="hidden" name="redirect" value="{{ redirect_url }}">{% endif %}
+<div class="fgroup">
+<label>{{ '2FA Code' if lang == 'en' else 'Código 2FA' }}</label>
+<input class="fcontrol" type="text" name="code" required placeholder="000000" maxlength="6" style="text-align:center;font-size:24px;letter-spacing:8px;font-family:var(--font-mono);" autofocus>
+</div>
+<button type="submit" class="btn prime lg" style="width:100%;margin-top:var(--space-md);">
+<span class="material-symbols-outlined" style="font-size:20px;">verified</span>
+{{ 'Verify' if lang == 'en' else 'Verificar' }}
+</button>
+</form>
+
+<div class="auth-foot">
+<a href="/">{{ 'Back to Dashboard' if lang == 'en' else 'Volver al Panel' }}</a>
+</div>
+</div>
+</div>
+
+{% endblock %}

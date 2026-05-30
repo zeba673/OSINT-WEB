@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+
+<div class="auth-page">
+<div class="auth-card">
+<div class="auth-head">
+<div class="mark" style="font-size:28px;width:48px;height:48px;">TP</div>
+<div>
+<div class="auth-title">TracePoint</div>
+<div class="auth-sub">{{ 'OSINT INTELLIGENCE SYSTEM' if lang == 'en' else 'SISTEMA DE INTELIGENCIA OSINT' }}</div>
+</div>
+</div>
+<h2 class="auth-heading">{{ 'Create Account' if lang == 'en' else 'Crear Cuenta' }}</h2>
+{% if is_first %}
+<div class="alert info">{{ 'First-time setup — create the admin account.' if lang == 'en' else 'Configuración inicial — crea la cuenta de administrador.' }}</div>
+{% endif %}
+{% if error %}
+<div class="alert error">{{ error }}</div>
+{% endif %}
+<form method="post" action="/auth/register">
+<div class="fgroup">
+<label>{{ 'DNI / ID' if lang == 'en' else 'DNI / ID' }}</label>
+<input class="fcontrol" type="text" name="dni" required placeholder="12345678A">
+<div class="fhelp">{{ 'National ID number (used as username)' if lang == 'en' else 'Número de identificación (usado como usuario)' }}</div>
+</div>
+<div class="fgroup">
+<label>{{ 'Display Name' if lang == 'en' else 'Nombre Visible' }}</label>
+<input class="fcontrol" type="text" name="display_name" required placeholder="John Agent">
+<div class="fhelp">{{ 'Your name or alias shown to other users' if lang == 'en' else 'Tu nombre o alias visible para otros usuarios' }}</div>
+</div>
+<div class="fgroup">
+<label>{{ 'Password' if lang == 'en' else 'Contraseña' }}</label>
+<input class="fcontrol" type="password" name="password" required minlength="8" placeholder="••••••••">
+<div class="fhelp">{{ 'Minimum 8 characters' if lang == 'en' else 'Mínimo 8 caracteres' }}</div>
+</div>
+<button type="submit" class="btn prime lg" style="width:100%;margin-top:var(--space-md);">
+{{ 'Create Account' if lang == 'en' else 'Crear Cuenta' }}
+</button>
+</form>
+<div class="auth-foot">
+{{ 'Already have an account?' if lang == 'en' else '¿Ya tienes cuenta?' }}
+<a href="/auth/login">{{ 'Log in' if lang == 'en' else 'Iniciar Sesión' }}</a>
+</div>
+</div>
+</div>
+
+{% endblock %}

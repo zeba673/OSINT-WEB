@@ -2,17 +2,17 @@
 {% block title %}{{ t('results_for') }} #{{ search.id }}{% endblock %}
 {% block content %}
 
-<div class="page-head">
-<div>
-<h1>{{ t('results_for') }}</h1>
-<p>{{ t('target') }}: <strong style="color:var(--fg)">{{ search.query_value[:80] }}</strong>
-<span class="badge">{{ search.query_type }}</span>
-<span class="badge" style="font-family:var(--font);font-size:10px;">ID: #{{ search.id }}</span></p>
+<div class="target-header">
+<div class="th-left">
+<span class="th-label">{{ 'TARGET:' if lang == 'en' else 'OBJETIVO:' }}</span>
+<span class="th-value">{{ search.query_value[:50] }}</span>
+{% if search.status == 'completed' %}<span class="chip chip-found">&#9679; {{ t('completed') }}</span>
+{% elif search.status == 'running' %}<span class="chip chip-critical">&#9679; {{ t('running') }}</span>
+{% elif search.status == 'error' %}<span class="chip chip-not-found">&#9679; {{ t('error') }}</span>{% endif %}
 </div>
-<div>
-{% if search.status == 'completed' %}<span class="badge green">&#9679; {{ t('completed') }}</span>
-{% elif search.status == 'running' %}<span class="badge amber">&#9679; {{ t('running') }}</span>
-{% elif search.status == 'error' %}<span class="badge red">&#9679; {{ t('error') }}</span>{% endif %}
+<div class="th-right">
+<div class="th-vector"><span style="color:var(--fg-dim);font-size:12px;">{{ 'VECTOR:' if lang == 'en' else 'VECTOR:' }}</span> <span>{{ search.query_type|upper }}</span></div>
+<span style="color:var(--fg-dim);font-size:12px;">#{{ search.id }}</span>
 </div>
 </div>
 
@@ -37,29 +37,26 @@
 {% if search.query_type == 'deep' %}
 {% set keys = r.keys() | list %}
 
-<div class="stats">
-<div class="stat"><div class="lbl">{{ t('data_sources') }}</div><div class="val">{{ keys | length }}</div></div>
+<div class="stats" style="margin-bottom:var(--space-md);">
+<div class="stat"><div class="lbl">{{ 'TOTAL SOURCES' if lang == 'en' else 'FUENTES TOTALES' }} <span class="material-symbols-outlined" style="font-size:16px;">radar</span></div><div class="val">{{ keys | length }}</div><div class="stat-bottom-bar" style="background:var(--border);"><div style="height:100%;width:70%;background:var(--accent);"></div></div></div>
 <div class="stat">
-<div class="lbl">{{ t('profiles_found') }}</div>
+<div class="lbl">{{ 'PROFILES FOUND' if lang == 'en' else 'PERFILES ENCONTRADOS' }} <span class="material-symbols-outlined" style="font-size:16px;">troubleshoot</span></div>
 {% set tp = namespace(n=0) %}
 {% for k in keys %}{% if k.startswith('username_') %}{% set tp.n = tp.n + r[k].get('total_found', 0) %}{% endif %}{% endfor %}
 <div class="val">{{ tp.n }}</div>
+<div class="stat-bottom-bar" style="background:var(--border);"><div style="height:100%;width:{{ '80' if tp.n > 0 else '20' }}%;background:var(--data-amber);"></div></div>
 </div>
 <div class="stat">
-<div class="lbl">Unverified</div>
+<div class="lbl">{{ 'UNVERIFIED' if lang == 'en' else 'NO VERIFICADOS' }} <span class="material-symbols-outlined" style="font-size:16px;">public</span></div>
 {% set uv = namespace(n=0) %}
 {% for k in keys %}{% if k.startswith('username_') %}{% set uv.n = uv.n + r[k].get('total_unverified', 0) %}{% endif %}{% endfor %}
 <div class="val" style="color:var(--amber)">{{ uv.n }}</div>
+<div class="stat-bottom-bar" style="background:var(--border);"><div style="height:100%;width:50%;background:var(--green);"></div></div>
 </div>
 <div class="stat">
-<div class="lbl">{{ t('breaches_detected') }}</div>
-{% set bc = namespace(n=0) %}
-{% for k in keys %}{% if k.startswith('email_') and r[k].get('hibp') %}{% set bc.n = bc.n + r[k]['hibp'].get('total_breaches', 0) %}{% endif %}{% endfor %}
-<div class="val">{{ bc.n }}</div>
-</div>
-<div class="stat">
-<div class="lbl">{{ t('ai_status') }}</div>
-<div class="val" style="color:var(--green)">{{ t('analyzed') if search.ai_analysis else t('pending') }}</div>
+<div class="lbl">{{ 'AI STATUS' if lang == 'en' else 'ESTADO IA' }} <span class="material-symbols-outlined" style="font-size:16px;">memory</span></div>
+<div class="val" style="color:{{ 'var(--green)' if search.ai_analysis else 'var(--amber)' }};font-size:24px;">{{ t('analyzed') if search.ai_analysis else t('pending') }}</div>
+<div class="stat-bottom-bar" style="background:var(--border);"><div style="height:100%;width:100%;background:var(--accent);"></div></div>
 </div>
 </div>
 
@@ -67,7 +64,7 @@
 {% for key in keys %}
 {% set sid = key|replace('.','_')|replace('@','_') %}
 <a class="tab {% if loop.first %}active{% endif %}" data-tab="t{{ sid }}" href="#">
-{% if key.startswith('username_') %}&#128270;{% elif key.startswith('instagram_') %}&#128248;{% elif key.startswith('twitter_') %}&#128038;{% elif key.startswith('facebook_') %}&#128100;{% elif key.startswith('linkedin_') %}&#128188;{% elif key.startswith('email_') %}&#9993;{% elif key.startswith('holehe_') %}&#128273;{% elif key.startswith('name_') %}&#128100;{% elif key.startswith('phone_') %}&#128241;{% elif key.startswith('dorks_') %}&#128269;{% elif key.startswith('url_') %}&#128279;{% elif key.startswith('breaches_') %}&#9888;{% elif key.startswith('deepweb_') %}&#127760;{% elif key == 'image_social' %}&#128247;{% else %}&#128203;{% endif %}
+{% if key.startswith('username_') %}<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:3px;">person_search</span>{% elif key.startswith('instagram_') %}INSTA{% elif key.startswith('twitter_') %}TWITTER{% elif key.startswith('facebook_') %}FB{% elif key.startswith('linkedin_') %}LI{% elif key.startswith('email_') %}<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:3px;">alternate_email</span>{% elif key.startswith('holehe_') %}HOLEHE{% elif key.startswith('name_') %}<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:3px;">person</span>{% elif key.startswith('phone_') %}<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:3px;">call</span>{% elif key.startswith('dorks_') %}DORKS{% elif key.startswith('url_') %}URL{% elif key.startswith('breaches_') %}<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:3px;">warning</span>{% elif key.startswith('deepweb_') %}<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:3px;">radar</span>{% elif key == 'image_social' %}<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:3px;">image</span>{% else %}INFO{% endif %}
 {{ key.split('_')[0]|capitalize }}
 </a>
 {% endfor %}
@@ -80,38 +77,41 @@
 
 {% if key.startswith('username_') %}
 <div class="panel">
-<div class="panel-head"><h3>&#128270; {{ t('username') }}: {{ key.split('_',1)[1] }}</h3></div>
+<div class="panel-head"><h3><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:4px;">person_search</span> {{ t('username') }}: {{ key.split('_',1)[1] }}</h3></div>
 <div class="panel-body">
-<div class="stats" style="grid-template-columns:repeat(3,1fr);">
-<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('platform') }}</div><div class="val" style="font-size:18px;">{{ s.profiles|length }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('profiles_found') }}</div><div class="val" style="font-size:18px;color:var(--green)">{{ s.total_found }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Unverified</div><div class="val" style="font-size:18px;color:var(--amber)">{{ s.total_unverified }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Hit Rate</div><div class="val" style="font-size:18px;">{{ "%.0f"|format(s.total_found/s.profiles|length*100 if s.profiles else 0) }}%</div></div>
+<div class="results-grid">
+{% for p in s.profiles if p.status in ('found','unverified') %}
+<div class="result-card">
+<div class="rc-header">
+<div class="rc-platform">
+<span class="material-symbols-outlined" style="font-size:18px;color:var(--fg-dim);">{% if p.status == 'found' %}check_circle{% else %}help{% endif %}</span>
+{{ p.platform }}
 </div>
-{% if s.profiles %}
-<table class="dense">
-<thead><tr><th>{{ t('platform') }}</th><th>URL</th><th>{{ t('status') }}</th></tr></thead>
-<tbody>
-{% for p in s.profiles if p.status == 'found' %}
-<tr><td style="font-weight:500;">{{ p.platform }}</td><td><a href="{{ p.url }}" target="_blank">{{ p.url[:55] }}&#8230;</a></td><td><span class="badge green">{{ t('found') }}</span></td></tr>
+<span class="chip {% if p.status == 'found' %}chip-found{% else %}chip-critical{% endif %}">{{ p.status|upper }}</span>
+</div>
+<div class="rc-url">{{ p.url }}</div>
+<div class="rc-footer">
+<span class="rc-meta">{{ 'Active' if lang == 'en' else 'Activo' }}</span>
+<a href="{{ p.url }}" target="_blank" class="chip chip-verified" style="text-decoration:none;">{{ 'VIEW PROFILE' if lang == 'en' else 'VER PERFIL' }}</a>
+</div>
+</div>
 {% endfor %}
-{% for p in s.profiles if p.status == 'unverified' %}
-<tr><td style="font-weight:500;color:var(--amber);">{{ p.platform }}</td><td><a href="{{ p.url }}" target="_blank" style="color:var(--amber);">{{ p.url[:55] }}&#8230;</a></td><td><span class="badge amber">Unverified</span></td></tr>
+</div>
+{% set nf = s.profiles|selectattr("status","in",["not_found","blocked","redirect_login","redirect_away","rate_limited","error","timeout"])|list %}
+{% if nf %}
+<details class="nf-collapse" style="margin-top:var(--space-md);">
+<summary>
+<span>{{ 'NEGATIVE RESULTS' if lang == 'en' else 'RESULTADOS NEGATIVOS' }} <span class="nf-count">{{ nf|length }}</span></span>
+<span class="material-symbols-outlined" style="font-size:18px;color:var(--fg-dim);">expand_more</span>
+</summary>
+<div class="nf-body">
+<div class="nf-tags">
+{% for p in nf %}
+<span class="nf-tag">{{ p.platform }}</span>
 {% endfor %}
-</tbody>
-</table>
-{% if s.profiles|selectattr("status","in",["not_found","blocked","redirect_login","redirect_away","rate_limited","error","timeout"])|list %}
-<details style="margin-top:8px;">
-<summary style="cursor:pointer;font-size:12px;color:var(--fg-2);">&#9660; Show not found ({{ s.profiles|selectattr("status","in",["not_found","blocked","redirect_login","redirect_away","rate_limited","error","timeout"])|list|length }})</summary>
-<table class="dense">
-<tbody>
-{% for p in s.profiles if p.status in ('not_found','blocked','redirect_login','redirect_away','rate_limited','error','timeout') %}
-<tr><td style="color:var(--fg-2);font-size:11px;">{{ p.platform }}</td><td style="color:var(--fg-2);font-size:11px;">{{ p.url[:45] }}&#8230;</td><td><span class="badge" style="background:var(--bg-primary);color:var(--fg-2);border:1px solid var(--border);">{{ p.status }}</span></td></tr>
-{% endfor %}
-</tbody>
-</table>
+</div>
+</div>
 </details>
-{% endif %}
 {% endif %}
 </div>
 </div>
@@ -119,7 +119,7 @@
 
 {% if key.startswith('instagram_') and s.profile %}
 <div class="panel">
-<div class="panel-head"><h3>&#128248; Instagram: @{{ s.target }}</h3></div>
+<div class="panel-head"><h3>Instagram: @{{ s.target }}</h3></div>
 <div class="panel-body">
 <div class="stats" style="grid-template-columns:repeat(4,1fr);">
 <div class="stat" style="padding:8px 12px;"><div class="lbl">Followers</div><div class="val" style="font-size:16px;">{{ s.profile.followers_count }}</div></div>
@@ -128,7 +128,7 @@
 <div class="stat" style="padding:8px 12px;"><div class="lbl">Private</div><div class="val" style="font-size:16px;color:{{ 'var(--amber)' if s.profile.is_private else 'var(--green)' }};">{{ t('yes') if s.profile.is_private else t('no') }}</div></div>
 </div>
 <div class="kv"><span class="k">{{ t('full_name') }}</span><span class="v">{{ s.profile.full_name or t('na') }}</span></div>
-<div class="kv"><span class="k">Bio</span><span class="v">{{ s.profile.biography[:200] or t('na') }}</span></div>
+{% if s.profile.biography %}<div class="kv"><span class="k">Bio</span><span class="v">{{ s.profile.biography[:200] or t('na') }}</span></div>{% endif %}
 {% if s.profile.external_url %}<div class="kv"><span class="k">URL</span><span class="v"><a href="{{ s.profile.external_url }}">{{ s.profile.external_url }}</a></span></div>{% endif %}
 </div>
 </div>
@@ -136,7 +136,7 @@
 
 {% if key.startswith('twitter_') and s.profile %}
 <div class="panel">
-<div class="panel-head"><h3>&#128038; Twitter/X: @{{ s.target }}</h3></div>
+<div class="panel-head"><h3>Twitter/X: @{{ s.target }}</h3></div>
 <div class="panel-body">
 <div class="stats" style="grid-template-columns:repeat(4,1fr);">
 <div class="stat" style="padding:8px 12px;"><div class="lbl">Followers</div><div class="val" style="font-size:16px;">{{ s.followers_count }}</div></div>
@@ -151,7 +151,7 @@
 
 {% if key.startswith('facebook_') and s.profiles_found %}
 <div class="panel">
-<div class="panel-head"><h3>&#128100; Facebook: {{ s.target }}</h3></div>
+<div class="panel-head"><h3>Facebook: {{ s.target }}</h3></div>
 <div class="panel-body">
 {% for p in s.profiles_found[:10] %}
 <div class="kv"><span class="k"><a href="{{ p.url }}" target="_blank">{{ p.name }}</a></span></div>
@@ -162,7 +162,7 @@
 
 {% if key.startswith('linkedin_') and s.profiles %}
 <div class="panel">
-<div class="panel-head"><h3>&#128188; LinkedIn: {{ s.target }}</h3></div>
+<div class="panel-head"><h3>LinkedIn: {{ s.target }}</h3></div>
 <div class="panel-body">
 {% for p in s.profiles[:10] %}
 <div class="kv"><span class="k"><a href="{{ p.url }}" target="_blank">{{ p.name }}</a></span></div>
@@ -173,27 +173,27 @@
 
 {% if key.startswith('email_') %}
 <div class="panel">
-<div class="panel-head"><h3>&#9993; {{ t('email') }}: {{ s.email }}</h3></div>
+<div class="panel-head"><h3><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:4px;">alternate_email</span> {{ t('email') }}: {{ s.email }}</h3></div>
 <div class="panel-body">
 <div class="stats" style="grid-template-columns:repeat(3,1fr);">
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Risk Score</div><div class="val" style="font-size:18px;color:{{ 'var(--green)' if s.risk_score < 30 else 'var(--amber)' if s.risk_score < 60 else 'var(--red)' }};">{{ s.risk_score }}/100</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'RISK' if lang == 'en' else 'RIESGO' }}</div><div class="val" style="font-size:18px;color:{{ 'var(--green)' if s.risk_score < 30 else 'var(--amber)' if s.risk_score < 60 else 'var(--red)' }};">{{ s.risk_score }}/100</div></div>
 <div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('breaches_detected') }}</div><div class="val" style="font-size:18px;">{{ s.hibp.total_breaches if s.hibp else 0 }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Web</div><div class="val" style="font-size:18px;">{{ s.web_mentions|length }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'WEB' if lang == 'en' else 'WEB' }}</div><div class="val" style="font-size:18px;">{{ s.web_mentions|length }}</div></div>
 </div>
 {% if s.gravatar %}
-<div style="display:flex;gap:12px;margin-top:8px;padding:8px 10px;background:var(--bg-primary);border:1px solid var(--border);">
-<img src="{{ s.gravatar.avatar }}" style="width:40px;height:40px;flex-shrink:0;">
+<div style="display:flex;gap:12px;margin-top:8px;padding:10px 12px;background:var(--bg-level-0);border:1px solid var(--border-outline);border-radius:var(--radius);">
+<img src="{{ s.gravatar.avatar }}" style="width:48px;height:48px;flex-shrink:0;border-radius:var(--radius);">
 <div>
-<div style="font-weight:600;font-size:13px;">{{ s.gravatar.display_name or 'N/A' }}</div>
-<div style="font-size:11px;color:var(--fg-2);">@{{ s.gravatar.preferred_username or 'N/A' }}</div>
+<div style="font-weight:600;font-size:14px;">{{ s.gravatar.display_name or 'N/A' }}</div>
+<div style="font-size:12px;color:var(--fg-2);">@{{ s.gravatar.preferred_username or 'N/A' }}</div>
 </div>
 </div>
 {% endif %}
 {% if s.hibp and s.hibp.breaches %}
 <div style="margin-top:8px;">
-<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--fg-dim);margin-bottom:4px;">{{ t('breaches_detected') }}</div>
+<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--fg-dim);margin-bottom:4px;font-family:var(--font-ui);">{{ t('breaches_detected') }}</div>
 <table class="dense">
-<thead><tr><th>{{ t('source') }}</th><th>{{ t('date') }}</th><th>Data</th></tr></thead>
+<thead><tr><th>{{ t('source') }}</th><th>{{ t('date') }}</th><th>{{ 'DATA' if lang == 'en' else 'DATOS' }}</th></tr></thead>
 <tbody>
 {% for b in s.hibp.breaches %}
 <tr><td>{{ b.name }}</td><td>{{ b.date }}</td><td style="color:var(--fg-2);font-size:11px;">{{ b.data_classes|join(', ') }}</td></tr>
@@ -208,7 +208,7 @@
 
 {% if key.startswith('holehe_') and s.registrations %}
 <div class="panel">
-<div class="panel-head"><h3>&#128273; Registered: {{ s.total_registered }}/{{ s.total_checked }}</h3></div>
+<div class="panel-head"><h3>{{ 'REGISTERED' if lang == 'en' else 'REGISTRADO' }}: {{ s.total_registered }}/{{ s.total_checked }}</h3></div>
 <div class="panel-body">
 <div style="display:flex;flex-wrap:wrap;gap:4px;">
 {% for reg in s.registrations %}
@@ -221,12 +221,12 @@
 
 {% if key.startswith('name_') %}
 <div class="panel">
-<div class="panel-head"><h3>&#128100; {{ t('full_name') }}: {{ s.name }}</h3></div>
+<div class="panel-head"><h3><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:4px;">person</span> {{ t('full_name') }}: {{ s.name }}</h3></div>
 <div class="panel-body">
 <div class="stats" style="grid-template-columns:repeat(3,1fr);">
-<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('all') }}</div><div class="val" style="font-size:18px;">{{ s.total_results }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Social</div><div class="val" style="font-size:18px;">{{ s.profiles|length }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Web</div><div class="val" style="font-size:18px;">{{ s.web_results|length }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'ALL' if lang == 'en' else 'TOTAL' }}</div><div class="val" style="font-size:18px;">{{ s.total_results }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'SOCIAL' if lang == 'en' else 'SOCIAL' }}</div><div class="val" style="font-size:18px;">{{ s.profiles|length }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'WEB' if lang == 'en' else 'WEB' }}</div><div class="val" style="font-size:18px;">{{ s.web_results|length }}</div></div>
 </div>
 {% if s.profiles %}
 <table class="dense">
@@ -244,13 +244,13 @@
 
 {% if key.startswith('phone_') %}
 <div class="panel">
-<div class="panel-head"><h3>&#128241; {{ t('phone') }}: {{ s.phone }}</h3></div>
+<div class="panel-head"><h3><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:4px;">call</span> {{ t('phone') }}: {{ s.phone }}</h3></div>
 <div class="panel-body">
 <div class="stats" style="grid-template-columns:repeat(4,1fr);">
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Valid</div><div class="val" style="font-size:16px;color:{{ 'var(--green)' if s.valid else 'var(--red)' }};">{{ t('yes') if s.valid else t('no') }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Country</div><div class="val" style="font-size:16px;">{{ s.country or t('na') }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Carrier</div><div class="val" style="font-size:16px;">{{ s.carrier or t('na') }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Location</div><div class="val" style="font-size:16px;">{{ s.location or t('na') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'VALID' if lang == 'en' else 'VÁLIDO' }}</div><div class="val" style="font-size:16px;color:{{ 'var(--green)' if s.valid else 'var(--red)' }};">{{ t('yes') if s.valid else t('no') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'COUNTRY' if lang == 'en' else 'PAÍS' }}</div><div class="val" style="font-size:16px;">{{ s.country or t('na') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'CARRIER' if lang == 'en' else 'OPERADOR' }}</div><div class="val" style="font-size:16px;">{{ s.carrier or t('na') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'LOCATION' if lang == 'en' else 'UBICACIÓN' }}</div><div class="val" style="font-size:16px;">{{ s.location or t('na') }}</div></div>
 </div>
 </div>
 </div>
@@ -258,14 +258,16 @@
 
 {% if key.startswith('dorks_') %}
 <div class="panel">
-<div class="panel-head"><h3>&#128269; Google Dorks: {{ s.total_results }} hits</h3></div>
+<div class="panel-head"><h3>{{ 'GOOGLE DORKS' if lang == 'en' else 'GOOGLE DORKS' }}: {{ s.total_results }} hits</h3></div>
 <div class="panel-body">
 {% for cat, items in s.categories.items() %}
-<details>
-<summary style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">{{ cat|replace('_',' ')|capitalize }} ({{ items|length }})</summary>
+<details class="nf-collapse" style="margin-bottom:var(--space-sm);">
+<summary><span>{{ cat|replace('_',' ')|capitalize }} ({{ items|length }})</span><span class="material-symbols-outlined" style="font-size:18px;color:var(--fg-dim);">expand_more</span></summary>
+<div class="nf-body">
 {% for item in items %}
 <div class="kv"><span class="k"><a href="{{ item.url }}" target="_blank">{{ item.title or item.url[:60] }}</a></span></div>
 {% endfor %}
+</div>
 </details>
 {% endfor %}
 </div>
@@ -274,11 +276,11 @@
 
 {% if key.startswith('url_') %}
 <div class="panel">
-<div class="panel-head"><h3>&#128279; URL Analysis</h3></div>
+<div class="panel-head"><h3>{{ 'URL ANALYSIS' if lang == 'en' else 'ANÁLISIS URL' }}</h3></div>
 <div class="panel-body">
 <div class="kv"><span class="k">URL</span><span class="v"><a href="{{ s.url }}" target="_blank">{{ s.url[:80] }}</a></span></div>
 {% if s.page_title %}<div class="kv"><span class="k">{{ t('title') }}</span><span class="v">{{ s.page_title }}</span></div>{% endif %}
-{% if s.tech_stack %}<div class="kv"><span class="k">Tech</span><span class="v">{% for t in s.tech_stack %}<span class="badge blue" style="margin-right:3px;">{{ t }}</span>{% endfor %}</span></div>{% endif %}
+{% if s.tech_stack %}<div class="kv"><span class="k">{{ 'TECH' if lang == 'en' else 'TECNOLOGÍAS' }}</span><span class="v">{% for t in s.tech_stack %}<span class="badge blue" style="margin-right:3px;">{{ t }}</span>{% endfor %}</span></div>{% endif %}
 {% if s.emails_found %}<div class="kv"><span class="k">{{ t('email') }}</span><span class="v">{% for e in s.emails_found %}<span class="badge" style="margin-right:3px;">{{ e }}</span>{% endfor %}</span></div>{% endif %}
 </div>
 </div>
@@ -286,7 +288,7 @@
 
 {% if key.startswith('breaches_') %}
 <div class="panel">
-<div class="panel-head"><h3>&#9888; {{ t('breaches_detected') }}</h3></div>
+<div class="panel-head"><h3><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:4px;">warning</span> {{ t('breaches_detected') }}</h3></div>
 <div class="panel-body">
 {% for site in s.leak_sites %}
 <div class="kv"><span class="k">{{ site.site }}</span><span class="v"><span class="badge {% if 'found' in site.status %}green{% elif 'error' in site.status %}red{% endif %}">{{ site.status }}</span></span></div>
@@ -297,7 +299,7 @@
 
 {% if key.startswith('deepweb_') %}
 <div class="panel">
-<div class="panel-head"><h3>&#127760; Deep Web</h3></div>
+<div class="panel-head"><h3><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:4px;">radar</span> {{ 'DEEP WEB' if lang == 'en' else 'DEEP WEB' }}</h3></div>
 <div class="panel-body">
 <div class="kv"><span class="k">Tor</span><span class="v"><span class="badge {% if s.tor_available %}green{% else %}red{% endif %}">{{ t('yes') if s.tor_available else t('no') }}</span></span></div>
 {% if s.scanned_onions %}
@@ -322,44 +324,60 @@
 {% endfor %}
 
 {% elif search.query_type == 'username' %}
-<div class="panel">
-<div class="panel-head"><h3>&#128270; {{ t('username') }} {{ t('search') }}</h3></div>
-<div class="panel-body">
-<div class="stats" style="grid-template-columns:repeat(4,1fr);">
-<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('platform') }}</div><div class="val" style="font-size:20px;">{{ r.profiles|length }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('profiles_found') }}</div><div class="val" style="font-size:20px;color:var(--green)">{{ r.total_found }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Unverified</div><div class="val" style="font-size:20px;color:var(--amber)">{{ r.total_unverified }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Hit Rate</div><div class="val" style="font-size:20px;">{{ "%.0f"|format(r.total_found / r.profiles|length * 100 if r.profiles else 0) }}%</div></div>
+<div class="stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:var(--space-md);">
+<div class="stat"><div class="lbl">{{ 'PLATFORMS' if lang == 'en' else 'PLATAFORMAS' }}</div><div class="val" style="font-size:24px;">{{ r.profiles|length }}</div><div class="stat-bottom-bar" style="background:var(--border);"><div style="height:100%;width:70%;background:var(--accent);"></div></div></div>
+<div class="stat"><div class="lbl">{{ t('profiles_found') }}</div><div class="val" style="font-size:24px;color:var(--green)">{{ r.total_found }}</div><div class="stat-bottom-bar" style="background:var(--border);"><div style="height:100%;width:80%;background:var(--data-amber);"></div></div></div>
+<div class="stat"><div class="lbl">{{ 'UNVERIFIED' if lang == 'en' else 'NO VERIFICADOS' }}</div><div class="val" style="font-size:24px;color:var(--amber)">{{ r.total_unverified }}</div><div class="stat-bottom-bar" style="background:var(--border);"><div style="height:100%;width:50%;background:var(--green);"></div></div></div>
+<div class="stat"><div class="lbl">{{ 'HIT RATE' if lang == 'en' else 'TASA DE ACIERTO' }}</div><div class="val" style="font-size:24px;">{{ "%.0f"|format(r.total_found/r.profiles|length*100 if r.profiles else 0) }}%</div><div class="stat-bottom-bar" style="background:var(--border);"><div style="height:100%;width:{{ r.total_found/r.profiles|length*100 if r.profiles else 0 }}%;background:var(--accent);"></div></div></div>
 </div>
-<table class="dense">
-<thead><tr><th>{{ t('platform') }}</th><th>URL</th><th>{{ t('status') }}</th></tr></thead>
-<tbody>
-{% for p in r.profiles if p.status == 'found' %}
-<tr><td style="font-weight:500;">{{ p.platform }}</td><td><a href="{{ p.url }}" target="_blank">{{ p.url[:55] }}&#8230;</a></td><td><span class="badge green">{{ t('found') }}</span></td></tr>
-{% endfor %}
-{% for p in r.profiles if p.status == 'unverified' %}
-<tr><td style="font-weight:500;color:var(--amber);">{{ p.platform }}</td><td><a href="{{ p.url }}" target="_blank" style="color:var(--amber);">{{ p.url[:55] }}&#8230;</a></td><td><span class="badge amber">Unverified</span></td></tr>
-{% endfor %}
-{% for p in r.profiles if p.status in ('not_found','blocked','redirect_login','redirect_away','rate_limited','error','timeout') %}
-<tr><td style="color:var(--fg-2);font-size:11px;">{{ p.platform }}</td><td style="color:var(--fg-2);font-size:11px;">{{ p.url[:45] }}&#8230;</td><td><span class="badge" style="background:var(--bg-primary);color:var(--fg-2);border:1px solid var(--border);">{{ p.status }}</span></td></tr>
-{% endfor %}
-</tbody>
-</table>
+
+<div class="results-grid">
+{% for p in r.profiles if p.status in ('found','unverified') %}
+<div class="result-card">
+<div class="rc-header">
+<div class="rc-platform">
+<span class="material-symbols-outlined" style="font-size:18px;color:var(--fg-dim);">{% if p.status == 'found' %}check_circle{% else %}help{% endif %}</span>
+{{ p.platform }}
+</div>
+<span class="chip {% if p.status == 'found' %}chip-found{% else %}chip-critical{% endif %}">{{ p.status|upper }}</span>
+</div>
+<div class="rc-url">{{ p.url }}</div>
+<div class="rc-footer">
+<span class="rc-meta">{{ 'Active' if lang == 'en' else 'Activo' }}</span>
+<a href="{{ p.url }}" target="_blank" class="chip chip-verified" style="text-decoration:none;">{{ 'VIEW PROFILE' if lang == 'en' else 'VER PERFIL' }}</a>
 </div>
 </div>
+{% endfor %}
+</div>
+
+{% set nf = r.profiles|selectattr("status","in",["not_found","blocked","redirect_login","redirect_away","rate_limited","error","timeout"])|list %}
+{% if nf %}
+<details class="nf-collapse" style="margin-top:var(--space-md);">
+<summary>
+<span>{{ 'NEGATIVE RESULTS' if lang == 'en' else 'RESULTADOS NEGATIVOS' }} <span class="nf-count">{{ nf|length }}</span></span>
+<span class="material-symbols-outlined" style="font-size:18px;color:var(--fg-dim);">expand_more</span>
+</summary>
+<div class="nf-body">
+<div class="nf-tags">
+{% for p in nf %}
+<span class="nf-tag">{{ p.platform }}</span>
+{% endfor %}
+</div>
+</div>
+</details>
+{% endif %}
 
 {% elif search.query_type == 'email' %}
 <div class="panel">
-<div class="panel-head"><h3>&#9993; {{ t('email') }} {{ t('search') }}</h3></div>
 <div class="panel-body">
 <div class="stats" style="grid-template-columns:repeat(3,1fr);">
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Risk</div><div class="val" style="font-size:20px;color:{{ 'var(--green)' if r.risk_score < 30 else 'var(--amber)' if r.risk_score < 60 else 'var(--red)' }};">{{ r.risk_score }}/100</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'RISK' if lang == 'en' else 'RIESGO' }}</div><div class="val" style="font-size:20px;color:{{ 'var(--green)' if r.risk_score < 30 else 'var(--amber)' if r.risk_score < 60 else 'var(--red)' }};">{{ r.risk_score }}/100</div></div>
 <div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('breaches_detected') }}</div><div class="val" style="font-size:20px;">{{ r.hibp.total_breaches if r.hibp else 0 }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Web</div><div class="val" style="font-size:20px;">{{ r.web_mentions|length }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'WEB' if lang == 'en' else 'WEB' }}</div><div class="val" style="font-size:20px;">{{ r.web_mentions|length }}</div></div>
 </div>
 {% if r.gravatar %}
-<div style="display:flex;gap:12px;margin-top:8px;padding:10px 12px;background:var(--bg-primary);border:1px solid var(--border);">
-<img src="{{ r.gravatar.avatar }}" style="width:48px;height:48px;flex-shrink:0;">
+<div style="display:flex;gap:12px;margin-top:8px;padding:10px 12px;background:var(--bg-level-0);border:1px solid var(--border-outline);border-radius:var(--radius);">
+<img src="{{ r.gravatar.avatar }}" style="width:48px;height:48px;flex-shrink:0;border-radius:var(--radius);">
 <div>
 <div style="font-weight:600;font-size:14px;">{{ r.gravatar.display_name or 'N/A' }}</div>
 <div style="font-size:12px;color:var(--fg-2);">@{{ r.gravatar.preferred_username or 'N/A' }}</div>
@@ -370,10 +388,10 @@
 </div>
 {% if r.hibp and r.hibp.breaches %}
 <div class="panel">
-<div class="panel-head"><h3>&#9888; {{ t('breaches_detected') }} ({{ r.hibp.total_breaches }})</h3></div>
+<div class="panel-head"><h3><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:4px;">warning</span> {{ t('breaches_detected') }} ({{ r.hibp.total_breaches }})</h3></div>
 <div class="panel-body plain">
 <table class="dense">
-<thead><tr><th>{{ t('source') }}</th><th>{{ t('date') }}</th><th>Data</th></tr></thead>
+<thead><tr><th>{{ t('source') }}</th><th>{{ t('date') }}</th><th>{{ 'DATA' if lang == 'en' else 'DATOS' }}</th></tr></thead>
 <tbody>
 {% for b in r.hibp.breaches %}
 <tr><td style="font-weight:500;">{{ b.name }}</td><td>{{ b.date }}</td><td style="color:var(--fg-2);font-size:11px;">{{ b.data_classes|join(', ') }}</td></tr>
@@ -386,12 +404,11 @@
 
 {% elif search.query_type == 'name' %}
 <div class="panel">
-<div class="panel-head"><h3>&#128100; {{ t('full_name') }} {{ t('search') }}</h3></div>
 <div class="panel-body">
 <div class="stats" style="grid-template-columns:repeat(3,1fr);">
-<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ t('all') }}</div><div class="val" style="font-size:20px;">{{ r.total_results }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Social</div><div class="val" style="font-size:20px;">{{ r.profiles|length }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Web</div><div class="val" style="font-size:20px;">{{ r.web_results|length }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'ALL' if lang == 'en' else 'TOTAL' }}</div><div class="val" style="font-size:20px;">{{ r.total_results }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'SOCIAL' if lang == 'en' else 'SOCIAL' }}</div><div class="val" style="font-size:20px;">{{ r.profiles|length }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'WEB' if lang == 'en' else 'WEB' }}</div><div class="val" style="font-size:20px;">{{ r.web_results|length }}</div></div>
 </div>
 {% if r.profiles %}
 <table class="dense">
@@ -408,13 +425,12 @@
 
 {% elif search.query_type == 'phone' %}
 <div class="panel">
-<div class="panel-head"><h3>&#128241; {{ t('phone') }} {{ t('search') }}</h3></div>
 <div class="panel-body">
 <div class="stats" style="grid-template-columns:repeat(4,1fr);">
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Valid</div><div class="val" style="font-size:18px;color:{{ 'var(--green)' if r.valid else 'var(--red)' }};">{{ t('yes') if r.valid else t('no') }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Country</div><div class="val" style="font-size:18px;">{{ r.country or t('na') }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Carrier</div><div class="val" style="font-size:18px;">{{ r.carrier or t('na') }}</div></div>
-<div class="stat" style="padding:8px 12px;"><div class="lbl">Location</div><div class="val" style="font-size:18px;">{{ r.location or t('na') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'VALID' if lang == 'en' else 'VÁLIDO' }}</div><div class="val" style="font-size:18px;color:{{ 'var(--green)' if r.valid else 'var(--red)' }};">{{ t('yes') if r.valid else t('no') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'COUNTRY' if lang == 'en' else 'PAÍS' }}</div><div class="val" style="font-size:18px;">{{ r.country or t('na') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'CARRIER' if lang == 'en' else 'OPERADOR' }}</div><div class="val" style="font-size:18px;">{{ r.carrier or t('na') }}</div></div>
+<div class="stat" style="padding:8px 12px;"><div class="lbl">{{ 'LOCATION' if lang == 'en' else 'UBICACIÓN' }}</div><div class="val" style="font-size:18px;">{{ r.location or t('na') }}</div></div>
 </div>
 </div>
 </div>
@@ -427,16 +443,13 @@
 {% endif %}
 
 {% if search.ai_analysis %}
-<div class="panel mt-2">
-<div class="panel-head"><h3>&#129302; AI {{ t('search') }}</h3><span class="badge green">IA v2</span></div>
-<div class="panel-body">
+<div class="ai-block">
+<div class="ai-bg"></div>
+<h3><span class="material-symbols-outlined" style="font-size:18px;">psychology</span> {{ 'AUTO-ANALYSIS BRIEF' if lang == 'en' else 'RESUMEN DE ANÁLISIS' }}</h3>
 <div class="ai">
 {{ search.ai_analysis | markdown }}
 </div>
 </div>
-</div>
-{% elif search.status == 'completed' %}
-<div class="alert warn">AI analysis requires OpenRouter API key in <code>.env</code></div>
 {% endif %}
 
 <div class="btn-group mt-2">

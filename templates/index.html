@@ -2,31 +2,36 @@
 {% block title %}{{ t('nav_dashboard') }}{% endblock %}
 {% block content %}
 
-<div class="page-head">
-<div>
-<h1>{{ t('dashboard_title') }}</h1>
-<p>{{ t('dashboard_subtitle') }}</p>
-</div>
-</div>
-
 <div class="stats">
 <div class="stat">
-<div class="lbl">{{ t('stat_investigations') }}</div>
+<div class="lbl">{{ t('stat_investigations') }} <span class="material-symbols-outlined" style="font-size:16px;">radar</span></div>
 <div class="val">{{ recent|length if recent else 0 }}</div>
+<div class="sub" style="color:var(--green);display:flex;align-items:center;gap:4px;">
+<span class="material-symbols-outlined" style="font-size:12px;">arrow_upward</span> {{ t('all_systems_nominal') }}
+</div>
+<div class="stat-bottom-bar" style="background:var(--border);"><div style="height:100%;width:70%;background:var(--accent);"></div></div>
 </div>
 <div class="stat">
-<div class="lbl">{{ t('stat_status') }}</div>
+<div class="lbl">{{ t('stat_status') }} <span class="material-symbols-outlined" style="font-size:16px;">troubleshoot</span></div>
 <div class="val" style="color:var(--green)">{{ t('operational') }}</div>
-<div class="sub" style="color:var(--green)">&#9679; {{ t('all_systems_nominal') }}</div>
+<div class="sub" style="color:var(--fg-dim);">{{ t('all_systems_nominal') }}</div>
+<div class="stat-bottom-bar" style="background:var(--border);"><div style="height:100%;width:40%;background:var(--data-amber);"></div></div>
 </div>
 <div class="stat">
-<div class="lbl">{{ t('stat_sources') }}</div>
+<div class="lbl">{{ t('stat_sources') }} <span class="material-symbols-outlined" style="font-size:16px;">public</span></div>
 <div class="val">{{ accounts|length if accounts else 0 }}</div>
-<div class="sub">{{ accounts|selectattr('configured')|list|length if accounts else 0 }} {{ t('connected') }}</div>
+<div class="sub" style="color:var(--green);display:flex;align-items:center;gap:4px;">
+<span class="material-symbols-outlined" style="font-size:12px;">check_circle</span> {{ accounts|selectattr('configured')|list|length if accounts else 0 }} {{ t('connected') }}
+</div>
+<div class="stat-bottom-bar" style="background:var(--border);"><div style="height:100%;width:95%;background:var(--green);"></div></div>
 </div>
 <div class="stat">
-<div class="lbl">{{ t('stat_ai') }}</div>
+<div class="lbl">{{ t('stat_ai') }} <span class="material-symbols-outlined" style="font-size:16px;">memory</span></div>
 <div class="val" style="color:var(--green)">{{ t('operational') }}</div>
+<div class="sub" style="color:var(--accent);display:flex;align-items:center;gap:4px;">
+<span class="material-symbols-outlined" style="font-size:12px;">sync</span> {{ t('all_systems_nominal') }}
+</div>
+<div class="stat-bottom-bar" style="background:var(--border);"><div style="height:100%;width:100%;background:var(--accent);animation:pulse-dot 2s ease-in-out infinite;"></div></div>
 </div>
 </div>
 
@@ -44,7 +49,6 @@ onkeydown="if(event.key==='Enter'){var v=this.value.trim();if(!v)return;if(v.inc
 </div>
 </div>
 
-<div class="g2">
 <div class="panel">
 <div class="panel-head">
 <h3>{{ t('recent_investigations') }}</h3>
@@ -53,26 +57,27 @@ onkeydown="if(event.key==='Enter'){var v=this.value.trim();if(!v)return;if(v.inc
 <div class="panel-body plain">
 {% if recent %}
 <table class="dense">
-<thead><tr><th>{{ t('id') }}</th><th>{{ t('type') }}</th><th>{{ t('target') }}</th><th>{{ t('status') }}</th></tr></thead>
+<thead><tr><th>{{ t('id') }}</th><th>{{ t('target') }}</th><th>{{ t('type') }}</th><th>{{ t('status') }}</th><th class="text-right">{{ t('date') }}</th></tr></thead>
 <tbody>
 {% for s in recent %}
-<tr onclick="window.location='/results/{{ s.id }}'" style="cursor:pointer;">
-<td class="mono" style="color:var(--fg-dim)">#{{ s.id }}</td>
-<td><span class="badge">{{ s.query_type }}</span></td>
-<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.query_value[:50] }}</td>
+<tr onclick="window.location='/results/{{ s.id }}'">
+<td class="mono">#{{ s.id }}</td>
+<td style="font-weight:500;">{{ s.query_value[:50] }}</td>
+<td><span class="badge" style="border-color:var(--accent);color:var(--accent);background:var(--accent-dim);">{{ s.query_type }}</span></td>
 <td>
 {% if s.status == 'completed' %}<span class="badge green">&#9679; {{ t('completed') }}</span>
 {% elif s.status == 'running' %}<span class="badge amber">&#9679; {{ t('running') }}</span>
 {% elif s.status == 'error' %}<span class="badge red">&#9679; {{ t('error') }}</span>
 {% else %}<span class="badge">{{ s.status }}</span>{% endif %}
 </td>
+<td class="mono text-right">{{ s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else '' }}</td>
 </tr>
 {% endfor %}
 </tbody>
 </table>
 {% else %}
 <div class="empty">
-<div class="ico">&#9776;</div>
+<div class="ico material-symbols-outlined">radar</div>
 <h3>{{ t('no_investigations_yet') }}</h3>
 <p>{{ t('no_investigations_desc') }}</p>
 </div>
@@ -89,11 +94,11 @@ onkeydown="if(event.key==='Enter'){var v=this.value.trim();if(!v)return;if(v.inc
 {% if accounts %}
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
 {% for a in accounts %}
-<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg-primary);border:1px solid var(--border);">
-<span style="width:5px;height:5px;background:{{ 'var(--green)' if a.configured else 'var(--fg-dim)' }};flex-shrink:0;"></span>
+<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg-surface-low);border:1px solid var(--border-outline);border-radius:var(--radius);">
+<span style="width:6px;height:6px;border-radius:50%;background:{{ 'var(--green)' if a.configured else 'var(--fg-dim)' }};flex-shrink:0;"></span>
 <div>
-<div style="font-size:11px;font-weight:500;color:var(--fg);">{{ a.platform|capitalize }}</div>
-<div style="font-size:9px;color:var(--fg-dim);">{{ t('connected') if a.configured else t('not_configured') }}</div>
+<div style="font-size:12px;font-weight:500;color:var(--fg);font-family:var(--font-ui);">{{ a.platform|capitalize }}</div>
+<div style="font-size:11px;color:var(--fg-dim);">{{ t('connected') if a.configured else t('not_configured') }}</div>
 </div>
 </div>
 {% endfor %}
@@ -103,7 +108,6 @@ onkeydown="if(event.key==='Enter'){var v=this.value.trim();if(!v)return;if(v.inc
 <p><a href="/accounts">{{ t('go_to_accounts') }}</a></p>
 </div>
 {% endif %}
-</div>
 </div>
 </div>
 

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+
+<div class="auth-page">
+<div class="auth-card">
+<div class="auth-head">
+<div class="mark" style="font-size:28px;width:48px;height:48px;">TP</div>
+<div>
+<div class="auth-title">TracePoint</div>
+<div class="auth-sub">{{ 'OSINT INTELLIGENCE SYSTEM' if lang == 'en' else 'SISTEMA DE INTELIGENCIA OSINT' }}</div>
+</div>
+</div>
+<h2 class="auth-heading">{{ 'Sign In' if lang == 'en' else 'Iniciar Sesión' }}</h2>
+{% if error %}
+<div class="alert error">{{ error }}</div>
+{% endif %}
+<form method="post" action="/auth/login">
+<div class="fgroup">
+<label>{{ 'DNI / ID' if lang == 'en' else 'DNI / ID' }}</label>
+<input class="fcontrol" type="text" name="dni" required placeholder="12345678A">
+</div>
+<div class="fgroup">
+<label>{{ 'Password' if lang == 'en' else 'Contraseña' }}</label>
+<input class="fcontrol" type="password" name="password" required placeholder="••••••••">
+</div>
+<button type="submit" class="btn prime lg" style="width:100%;margin-top:var(--space-md);">
+<span class="material-symbols-outlined" style="font-size:20px;">login</span>
+{{ 'Sign In' if lang == 'en' else 'Iniciar Sesión' }}
+</button>
+</form>
+<div class="auth-foot">
+{{ "Don't have an account?" if lang == 'en' else '¿No tienes cuenta?' }}
+<a href="/auth/register">{{ 'Create one' if lang == 'en' else 'Crear una' }}</a>
+</div>
+</div>
+</div>
+
+{% endblock %}

@@ -7,48 +7,73 @@
 <h1>{{ t('history_title') }}</h1>
 <p>{{ t('history_subtitle') }}</p>
 </div>
+<div class="search-input-wrap" style="width:320px;">
+<span class="material-symbols-outlined sico">search</span>
+<input type="text" placeholder="{{ 'Filter ID or Target...' if lang == 'en' else 'Filtrar ID o objetivo...' }}" onkeyup="filterTable(this.value)">
+</div>
 </div>
 
 <div class="panel">
-<div class="panel-head">
-<h3>{{ t('case_log') }}</h3>
-<span class="badge">{{ searches|length }} {{ t('records') }}</span>
-</div>
 <div class="panel-body plain">
 {% if searches %}
-<table class="dense">
+<div style="overflow-x:auto;">
+<table class="dense" id="historyTable">
 <thead>
-<tr><th>{{ t('id') }}</th><th>{{ t('type') }}</th><th>{{ t('target') }}</th><th>{{ t('status') }}</th><th>{{ t('date') }}</th><th>{{ t('actions') }}</th></tr>
+<tr><th>{{ t('id') }}</th><th>{{ 'Target' if lang == 'en' else 'Objetivo' }}</th><th class="text-right">{{ 'SOURCES' if lang == 'en' else 'FUENTES' }}</th><th class="text-right">{{ 'RESULTS' if lang == 'en' else 'RESULTADOS' }}</th><th>{{ t('date') }}</th><th class="text-right">{{ t('actions') }}</th></tr>
 </thead>
 <tbody>
 {% for s in searches %}
-<tr>
+<tr onclick="window.location='/results/{{ s.id }}'" class="history-row">
 <td class="mono" style="color:var(--fg-dim)">#{{ s.id }}</td>
-<td><span class="badge">{{ s.query_type }}</span></td>
-<td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.query_value[:70] }}</td>
 <td>
-{% if s.status == 'completed' %}<span class="badge green">&#9679; {{ t('completed') }}</span>
-{% elif s.status == 'running' %}<span class="badge amber">&#9679; {{ t('running') }}</span>
-{% elif s.status == 'error' %}<span class="badge red">&#9679; {{ t('error') }}</span>
-{% else %}<span class="badge">{{ s.status }}</span>{% endif %}
+<div style="display:flex;align-items:center;gap:var(--space-sm);">
+<span style="font-weight:500;">{{ s.query_value[:70] }}</span>
+<span class="chip chip-default" style="font-size:10px;">{{ s.query_type|upper }}</span>
+</div>
 </td>
-<td style="color:var(--fg-2);font-size:11px;">{{ s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else '-' }}</td>
-<td><div class="btn-group" style="gap:3px;">
-<a href="/results/{{ s.id }}" class="btn btn-sm">{{ t('view') }}</a>
-{% if s.report_path %}<a href="/view-report/{{ s.id }}" class="btn btn-sm" target="_blank">{{ t('report') }}</a>{% endif %}
-</div></td>
+<td class="text-right mono">{{ s.results.keys()|list|length if s.results and s.query_type == 'deep' else '—' }}</td>
+<td class="text-right mono" style="color:var(--data-amber);font-weight:700;">{% if s.results and s.query_type == 'deep' %}{% set tot = namespace(n=0) %}{% for k in s.results.keys() %}{% if k.startswith('username_') %}{% set tot.n = tot.n + s.results[k].get('total_found', 0) %}{% endif %}{% endfor %}{{ tot.n or '—' }}{% else %}—{% endif %}</td>
+<td class="mono" style="font-size:12px;color:var(--fg-dim);">{{ s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else '-' }}</td>
+<td class="text-right">
+<a href="/results/{{ s.id }}" class="btn btn-sm" style="background:var(--accent);color:#001f27;border-color:var(--accent);" onclick="event.stopPropagation();">{{ 'VIEW' if lang == 'en' else 'VER' }}</a>
+</td>
 </tr>
 {% endfor %}
 </tbody>
 </table>
+</div>
 {% else %}
 <div class="empty" style="padding:40px;">
-<div class="ico">&#9776;</div>
+<div class="ico material-symbols-outlined" style="font-size:36px;">history</div>
 <h3>{{ t('no_records') }}</h3>
 <p>{{ t('no_records_desc') }}</p>
 </div>
 {% endif %}
 </div>
 </div>
+
+{% if searches %}
+<div class="pagination">
+<div class="pg-info">{{ 'Showing 1-' + (searches|length)|string + ' of ' + (searches|length)|string + ' results' if lang == 'en' else 'Mostrando 1-' + (searches|length)|string + ' de ' + (searches|length)|string + ' resultados' }}</div>
+<div class="pg-btns">
+<button class="pg-btn" disabled>{{ 'Prev' if lang == 'en' else 'Ant' }}</button>
+<button class="pg-btn active">1</button>
+{% if searches|length > 25 %}<button class="pg-btn">2</button>{% endif %}
+{% if searches|length > 50 %}<button class="pg-btn">3</button>{% endif %}
+<button class="pg-btn" disabled>{{ 'Next' if lang == 'en' else 'Sig' }}</button>
+</div>
+</div>
+{% endif %}
+
+<script>
+function filterTable(val) {
+var rows = document.querySelectorAll('.history-row');
+var q = val.toLowerCase();
+rows.forEach(function(r) {
+var text = r.textContent.toLowerCase();
+r.style.display = text.indexOf(q) > -1 ? '' : 'none';
+});
+}
+</script>
 
 {% endblock %}
